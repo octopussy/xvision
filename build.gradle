@@ -1,4 +1,6 @@
 buildscript {
+    ext.kotlinVersion = '1.0.3'
+
     repositories {
         mavenLocal()
         mavenCentral()
@@ -9,6 +11,7 @@ buildscript {
         classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
         classpath 'com.android.tools.build:gradle:2.0.0'
         classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
@@ -16,7 +19,7 @@ allprojects {
     apply plugin: "eclipse"
     apply plugin: "idea"
 
-    version = '1.0'
+    version = '0.1'
     ext {
         appName = "xcom-game"
         gdxVersion = '1.9.3'
@@ -35,7 +38,7 @@ allprojects {
 }
 
 project(":desktop") {
-    apply plugin: "java"
+    apply plugin: "kotlin"
 
 
     dependencies {
@@ -49,6 +52,7 @@ project(":desktop") {
 
 project(":android") {
     apply plugin: "android"
+    apply plugin: "kotlin-android"
 
     configurations { natives }
 
@@ -72,7 +76,7 @@ project(":android") {
 }
 
 project(":ios") {
-    apply plugin: "java"
+    apply plugin: "kotlin"
     apply plugin: "robovm"
 
 
@@ -105,7 +109,7 @@ project(":html") {
 }
 
 project(":core") {
-    apply plugin: "java"
+    apply plugin: "kotlin"
 
 
     dependencies {
@@ -114,6 +118,7 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         compile "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
         compile "com.kotcrab.vis:vis-ui:1.1.1"
+        compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     }
 }
 
