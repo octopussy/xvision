@@ -3,7 +3,6 @@ package com.borschlabs.xcom
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.Screen
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -15,7 +14,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.input.GestureDetector
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
-import com.borschlabs.xcom.input.ScrollingInputController
+import com.borschlabs.xcom.input.InputController
+import com.borschlabs.xcom.renderer.FieldRenderer
+import com.borschlabs.xcom.world.Field
 
 /**
  * @author octopussy
@@ -39,16 +40,24 @@ class GameScreen : Screen {
     private lateinit var inputMultiplexer: InputMultiplexer
     private lateinit var mainInputController: GestureDetector
 
+    private lateinit var fieldRenderer:FieldRenderer
+
+    private lateinit var field: Field
+
     override fun show() {
         createFonts()
 
-        camera = OrthographicCamera()
-        camera.update()
         debugShapeRenderer = ShapeRenderer()
 
         uiBatch = SpriteBatch()
         uiBatch.shader = fontShader
         disposables.addAll(arrayOf(uiBatch, debugShapeRenderer))
+
+        field = Field()
+        fieldRenderer = FieldRenderer(field, debugShapeRenderer)
+
+        camera = OrthographicCamera()
+        camera.update()
 
         initInput()
     }
@@ -62,6 +71,9 @@ class GameScreen : Screen {
     override fun resize(width: Int, height: Int) {
         val ar = width / height.toFloat()
         camera.setToOrtho(false, VP_SIZE * ar, VP_SIZE)
+        camera.position.set(field.width / 2.0f, field.height / 2.0f, 0.0f)
+        camera.zoom = 0.1f
+        camera.update()
 
         val m = Matrix4()
         m.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
@@ -86,14 +98,14 @@ class GameScreen : Screen {
         debugShapeRenderer.circle(player.x, player.y, 0.2f)
         debugShapeRenderer.end()
 */
-        uiBatch.begin()
+        /*uiBatch.begin()
         font.color = Color.WHITE
         font.draw(uiBatch, "Hello epta!!! " + Gdx.graphics.framesPerSecond + " fps", 10f, (Gdx.graphics.height - 10).toFloat())
 
         font.draw(uiBatch, "wasd - movement; q,e - rotation; scroll - zooming", 10f, (Gdx.graphics.height - 50).toFloat())
-        uiBatch.end()
+        uiBatch.end()*/
 
-        drawDebugGeometry()
+        fieldRenderer.render(delta)
     }
 
     override fun resume() {
@@ -102,18 +114,6 @@ class GameScreen : Screen {
     override fun dispose() {
         disposables.forEach { it.dispose() }
         disposables.clear()
-    }
-
-    private fun drawDebugGeometry() {
-        debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        debugShapeRenderer.color = Color.BLUE
-
-        debugShapeRenderer.line(0.0f, 0.0f, 0.0f, 100.0f)
-        debugShapeRenderer.line(0.0f, 100.0f, 100.0f, 100.0f)
-        debugShapeRenderer.line(100.0f, 100.0f, 100.0f, 0.0f)
-        debugShapeRenderer.line(100.0f, 0.0f, 0.0f, 0.0f)
-
-        debugShapeRenderer.end()
     }
 
     private fun createFonts() {
@@ -126,7 +126,7 @@ class GameScreen : Screen {
     }
 
     private fun initInput() {
-        mainInputController = ScrollingInputController(camera)
+        mainInputController = InputController(camera)
         inputMultiplexer = InputMultiplexer(mainInputController)
         Gdx.input.inputProcessor = inputMultiplexer
     }

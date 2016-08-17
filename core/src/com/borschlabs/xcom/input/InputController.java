@@ -9,14 +9,14 @@ import com.badlogic.gdx.math.Vector3;
 /**
  * @author octopussy
  */
-public class ScrollingInputController extends GestureDetector {
+public class InputController extends GestureDetector {
 
-   private static final float MIN_ZOOM = 0.15f;
-   private static final float MAX_ZOOM = 5f;
+   private static final float MIN_ZOOM = 0.05f;
+   private static final float MAX_ZOOM = 3f;
 
    private final OrthographicCamera camera;
 
-   public ScrollingInputController(OrthographicCamera camera) {
+   public InputController(OrthographicCamera camera) {
       super(new GListener(camera));
       this.camera = camera;
    }
