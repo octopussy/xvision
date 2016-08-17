@@ -18,8 +18,9 @@ class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
     private fun drawDebugGeometry() {
         drawDebugGrid()
         drawDebugBounds()
+        drawObstacles()
 
-        drawTestReachableCells(7, 7, 4)
+        drawTestReachableCells(10, 9, 4)
     }
 
     private fun drawDebugBounds() {
@@ -51,6 +52,10 @@ class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
                 i -= 1.0f
             }
         }
+    }
+
+    private fun drawObstacles() {
+        field.obstacles.forEach { fillCell(it.x, it.y, Color.RED) }
     }
 
     private fun drawTestReachableCells(startX: Int, startY: Int, maxDistance:Int) {
