@@ -19,7 +19,7 @@ class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
         drawDebugGrid()
         drawDebugBounds()
 
-        drawTestReachableCells(18, 18, 4)
+        drawTestReachableCells(7, 7, 4)
     }
 
     private fun drawDebugBounds() {
@@ -38,7 +38,7 @@ class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
         val w = field.width.toFloat()
         val h = field.height.toFloat()
 
-        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color(0.0f, 1.0f, 0.0f, 0.3f)) {
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color(0.0f, 1.0f, 0.0f, 0.1f)) {
             var i = w.toFloat()
             while (i >= 0.0f) {
                 line(i, 0.0f, i, h)
