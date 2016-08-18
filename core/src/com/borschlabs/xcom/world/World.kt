@@ -11,28 +11,29 @@ import com.badlogic.gdx.utils.Array
  * @author octopussy
  */
 
-class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
+class World(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
+
+    private var cells:List<FieldCell> = mutableListOf()
+    private var collisionLayer: TiledMapTileLayer
 
     val width:Int get() = collisionLayer.width
     val height:Int get() = collisionLayer.height
 
-    private var cells:List<FieldCell> = mutableListOf()
+    val cellSize:Float get() = collisionLayer.tileWidth
 
-    var obstacles:List<FieldCell> = mutableListOf()
-
-    private var collisionLayer: TiledMapTileLayer
+    val units:MutableList<GameUnit> = mutableListOf()
+    val obstacles:MutableList<FieldCell> = mutableListOf()
 
     init {
         collisionLayer = tiledMap.layers.get("collision") as TiledMapTileLayer
-                ?: throw IllegalArgumentException("Cannot find 'collision' layer.")
 
         createCells()
     }
 
-    fun getNode(x: Int, y: Int): FieldCell {
+    fun getCell(x: Int, y: Int): FieldCell {
         val index = y * width + x
         if (index < 0 || index >= width*height){
-            throw IllegalArgumentException("getNode() index out of bounds!")
+            throw IllegalArgumentException("getCell() index out of bounds!")
         }
 
         return cells[index]
@@ -42,19 +43,19 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
         val neighbours = mutableListOf<FieldCell>()
         val connections:Array<Connection<FieldCell>> = Array()
         if (fromNode.x > 0) {
-            neighbours.add(getNode(fromNode.x - 1, fromNode.y))
+            neighbours.add(getCell(fromNode.x - 1, fromNode.y))
         }
 
         if (fromNode.x < width - 1) {
-            neighbours.add(getNode(fromNode.x + 1, fromNode.y))
+            neighbours.add(getCell(fromNode.x + 1, fromNode.y))
         }
 
         if (fromNode.y > 0) {
-            neighbours.add(getNode(fromNode.x, fromNode.y - 1))
+            neighbours.add(getCell(fromNode.x, fromNode.y - 1))
         }
 
         if (fromNode.y < height - 1) {
-            neighbours.add(getNode(fromNode.x, fromNode.y + 1))
+            neighbours.add(getCell(fromNode.x, fromNode.y + 1))
         }
 
         for (n in neighbours) {
@@ -72,21 +73,21 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
     private fun createCells() {
         val c = mutableListOf<FieldCell>()
-        val o = mutableListOf<FieldCell>()
         var i = 0
         while (i < nodeCount) {
             val x = i % width
             val y = i / width
-            val cell = FieldCell(x, y)
+            val cell = DefaultCell(x, y)
             c.add(cell)
             ++i
 
             if (collisionLayer.getCell(x, y) != null) {
-                o.add(cell)
+                obstacles.add(cell)
             }
         }
 
         cells = c
-        obstacles = o
     }
+
+    private data class DefaultCell(override val x: Int, override val y: Int) : FieldCell
 }

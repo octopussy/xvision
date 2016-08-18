@@ -11,23 +11,19 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
-import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.borschlabs.xcom.input.InputController
-import com.borschlabs.xcom.renderer.FieldRenderer
-import com.borschlabs.xcom.world.Field
+import com.borschlabs.xcom.renderer.WorldRenderer
+import com.borschlabs.xcom.world.GameController
+import com.borschlabs.xcom.world.World
 
 /**
  * @author octopussy
  */
 
 class GameScreen : Screen {
-
-    private val VP_SIZE: Float = 100.0f
 
     private val disposables: MutableList<Disposable> = mutableListOf()
 
@@ -43,14 +39,11 @@ class GameScreen : Screen {
     private lateinit var inputMultiplexer: InputMultiplexer
     private lateinit var mainInputController: InputController
 
-    private lateinit var fieldRenderer: FieldRenderer
+    private lateinit var world: World
 
-    private lateinit var field: Field
+    private lateinit var worldRenderer: WorldRenderer
 
-    private lateinit var tiledMap: TiledMap
-    private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
-
-    private lateinit var groundLayer: TiledMapTileLayer
+    private lateinit var gameController:GameController
 
     override fun show() {
         createFonts()
@@ -65,20 +58,27 @@ class GameScreen : Screen {
         params.generateMipMaps = true
         params.textureMagFilter = Texture.TextureFilter.MipMapLinearLinear
         params.textureMinFilter = Texture.TextureFilter.MipMapLinearLinear
-        tiledMap = TmxMapLoader().load("maps/test.tmx", params)
-
-        groundLayer = tiledMap.layers.get("ground") as TiledMapTileLayer
-
-        tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, 1.0f / groundLayer.tileWidth)
-        disposables.addAll(arrayOf(tiledMapRenderer, tiledMap))
-
-        field = Field(tiledMap)
-        fieldRenderer = FieldRenderer(field, debugShapeRenderer)
+        val tiledMap = TmxMapLoader().load("maps/test.tmx", params)
 
         camera = OrthographicCamera()
-        camera.update()
+
+        world = World(tiledMap)
+        worldRenderer = WorldRenderer(world, tiledMap, camera, debugShapeRenderer)
+
+        disposables.addAll(arrayOf(worldRenderer, tiledMap))
 
         initInput()
+
+        initGameController()
+
+        gameController.spawnPlayer(3, 3)
+
+        camera.update()
+    }
+
+    private fun initGameController() {
+        gameController = GameController(world)
+        disposables.add(gameController)
     }
 
     override fun pause() {
@@ -89,7 +89,7 @@ class GameScreen : Screen {
 
     override fun resize(width: Int, height: Int) {
         camera.setToOrtho(false, width.toFloat(), height.toFloat())
-        camera.position.set(field.width / 2.0f, field.height / 2.0f, 0.0f)
+        camera.position.set(world.width / 2.0f, world.height / 2.0f, 0.0f)
         camera.update()
 
         val m = Matrix4()
@@ -109,9 +109,6 @@ class GameScreen : Screen {
         Gdx.gl.glEnable(GL20.GL_BLEND)
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-        tiledMapRenderer.setView(camera)
-        tiledMapRenderer.render()
-
         /*// player
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         debugShapeRenderer.color = Color.RED
@@ -125,7 +122,7 @@ class GameScreen : Screen {
         font.draw(uiBatch, "wasd - movement; q,e - rotation; scroll - zooming", 10f, (Gdx.graphics.height - 50).toFloat())
         uiBatch.end()*/
 
-        fieldRenderer.render(delta)
+        worldRenderer.render(delta)
     }
 
     override fun resume() {

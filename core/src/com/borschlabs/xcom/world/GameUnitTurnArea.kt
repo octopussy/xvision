@@ -10,28 +10,28 @@ import com.borschlabs.xcom.clamp
  * @author octopussy
  */
 
-class UnitTurnArea(val field: Field) {
+class GameUnitTurnArea(val world: World) {
     private var _reachableCells: MutableSet<FieldCell> = mutableSetOf()
 
     val reachableCells: List<FieldCell>
         get() = _reachableCells.toList()
 
-    fun calculateArea(startX: Int, startY: Int, maxDistance: Int) {
+    fun calculateArea(startCell:FieldCell, maxDistance: Int) {
         _reachableCells = mutableSetOf()
-        _reachableCells.add(FieldCell(startX, startY))
+        _reachableCells.add(startCell)
 
-        val minX = (startX - maxDistance).clamp(0, field.width - 1)
-        val minY = (startY - maxDistance).clamp(0, field.height - 1)
-        val maxX = (startX + maxDistance).clamp(0, field.width - 1)
-        val maxY = (startY + maxDistance).clamp(0, field.height - 1)
+        val minX = (startCell.x - maxDistance).clamp(0, world.width - 1)
+        val minY = (startCell.y - maxDistance).clamp(0, world.height - 1)
+        val maxX = (startCell.x + maxDistance).clamp(0, world.width - 1)
+        val maxY = (startCell.y + maxDistance).clamp(0, world.height - 1)
 
         var y = minY
         while (y <= maxY) {
             var x = minX
             while (x <= maxX) {
-                val c = field.getNode(x, y)
+                val c = world.getCell(x, y)
                 if (!_reachableCells.contains(c)){
-                    traceRoute(startX, startY, x, y, maxDistance)
+                    traceRoute(startCell.x, startCell.y, x, y, maxDistance)
                 }
 
                 ++x
@@ -42,9 +42,9 @@ class UnitTurnArea(val field: Field) {
     }
 
     private fun traceRoute(startX: Int, startY: Int, targetX: Int, targetY: Int, maxDistance: Int) {
-        val finder = IndexedAStarPathFinder<FieldCell>(field)
+        val finder = IndexedAStarPathFinder<FieldCell>(world)
         val path:GraphPath<FieldCell> = DefaultGraphPath<FieldCell>()
-        finder.searchNodePath(field.getNode(startX, startY), field.getNode(targetX, targetY), FieldHeuristic(), path)
+        finder.searchNodePath(world.getCell(startX, startY), world.getCell(targetX, targetY), FieldHeuristic(), path)
 
         var depth = maxDistance + 1
         for (c in path) {
