@@ -11,16 +11,23 @@ import com.borschlabs.xcom.world.UnitTurnArea
 
 class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
 
+    private var turnArea: UnitTurnArea
+
+    init {
+        turnArea = UnitTurnArea(field)
+        turnArea.calculateArea(7, 7, 7)
+    }
+
     fun render(delta: Float) {
         drawDebugGeometry()
     }
 
     private fun drawDebugGeometry() {
-        drawDebugGrid()
+       // drawDebugGrid()
         drawDebugBounds()
-        drawObstacles()
+       // drawObstacles()
 
-        drawTestReachableCells(10, 9, 4)
+        drawTestReachableCells()
     }
 
     private fun drawDebugBounds() {
@@ -58,10 +65,7 @@ class FieldRenderer(val field: Field, val debugShapeRenderer: ShapeRenderer) {
         field.obstacles.forEach { fillCell(it.x, it.y, Color.RED) }
     }
 
-    private fun drawTestReachableCells(startX: Int, startY: Int, maxDistance:Int) {
-        val turnArea = UnitTurnArea(field)
-        turnArea.calculateArea(startX, startY, maxDistance)
-
+    private fun drawTestReachableCells() {
         for ((x, y) in turnArea.reachableCells) {
             fillCell(x, y, Color(0.0f, 1.0f, 0.0f, 0.5f))
         }

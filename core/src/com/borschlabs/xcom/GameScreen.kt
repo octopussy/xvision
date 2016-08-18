@@ -12,6 +12,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.input.GestureDetector
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.borschlabs.xcom.input.InputController
@@ -26,7 +29,7 @@ class GameScreen : Screen {
 
     private val VP_SIZE: Float = 100.0f
 
-    private val disposables:MutableList<Disposable> = mutableListOf()
+    private val disposables: MutableList<Disposable> = mutableListOf()
 
     private lateinit var fontTexture: Texture
     private lateinit var font: BitmapFont
@@ -40,9 +43,12 @@ class GameScreen : Screen {
     private lateinit var inputMultiplexer: InputMultiplexer
     private lateinit var mainInputController: GestureDetector
 
-    private lateinit var fieldRenderer:FieldRenderer
+    private lateinit var fieldRenderer: FieldRenderer
 
     private lateinit var field: Field
+
+    private lateinit var tiledMap: TiledMap
+    private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
 
     override fun show() {
         createFonts()
@@ -53,7 +59,12 @@ class GameScreen : Screen {
         uiBatch.shader = fontShader
         disposables.addAll(arrayOf(uiBatch, debugShapeRenderer))
 
-        field = Field()
+        tiledMap = TmxMapLoader().load("maps/test.tmx")
+
+        tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, 1.0f / 64.0f)
+        disposables.addAll(arrayOf(tiledMapRenderer, tiledMap))
+
+        field = Field(tiledMap)
         fieldRenderer = FieldRenderer(field, debugShapeRenderer)
 
         camera = OrthographicCamera()
@@ -91,6 +102,9 @@ class GameScreen : Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         Gdx.gl.glEnable(GL20.GL_BLEND)
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        tiledMapRenderer.setView(camera)
+        tiledMapRenderer.render()
 
         /*// player
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Filled)

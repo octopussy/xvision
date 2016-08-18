@@ -3,38 +3,30 @@ package com.borschlabs.xcom.world
 import com.badlogic.gdx.ai.pfa.Connection
 import com.badlogic.gdx.ai.pfa.DefaultConnection
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.utils.Array
 
 /**
  * @author octopussy
  */
 
-class Field : IndexedGraph<FieldCell> {
-    val width = 30
-    val height = 30
+class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
-    private val cells:List<FieldCell>
+    val width:Int get() = collisionLayer.width
+    val height:Int get() = collisionLayer.height
 
-    val obstacles:List<FieldCell>
+    private var cells:List<FieldCell> = mutableListOf()
+
+    var obstacles:List<FieldCell> = mutableListOf()
+
+    private var collisionLayer: TiledMapTileLayer
 
     init {
-        val c:MutableList<FieldCell> = mutableListOf()
-        var i = 0
-        while (i < width * height) {
-            c.add(FieldCell(i % width, i / width))
-            ++i
-        }
+        collisionLayer = tiledMap.layers.get("collision") as TiledMapTileLayer
+                ?: throw IllegalArgumentException("Cannot find 'collision' layer.")
 
-        cells = c
-
-        val o:MutableList<FieldCell> = mutableListOf()
-        o.add(getNode(10, 10))
-        o.add(getNode(10, 11))
-        o.add(getNode(11, 11))
-        o.add(getNode(12, 11))
-        o.add(getNode(10, 12))
-
-        obstacles = o
+        createCells()
     }
 
     fun getNode(x: Int, y: Int): FieldCell {
@@ -77,4 +69,24 @@ class Field : IndexedGraph<FieldCell> {
     override fun getIndex(node: FieldCell): Int = node.y * width + node.x
 
     override fun getNodeCount(): Int = width * height
+
+    private fun createCells() {
+        val c = mutableListOf<FieldCell>()
+        val o = mutableListOf<FieldCell>()
+        var i = 0
+        while (i < nodeCount) {
+            val x = i % width
+            val y = i / width
+            val cell = FieldCell(x, y)
+            c.add(cell)
+            ++i
+
+            if (collisionLayer.getCell(x, y) != null) {
+                o.add(cell)
+            }
+        }
+
+        cells = c
+        obstacles = o
+    }
 }
