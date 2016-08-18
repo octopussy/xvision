@@ -11,8 +11,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.input.GestureDetector
 import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Matrix4
@@ -41,7 +41,7 @@ class GameScreen : Screen {
     private lateinit var debugShapeRenderer: ShapeRenderer
 
     private lateinit var inputMultiplexer: InputMultiplexer
-    private lateinit var mainInputController: GestureDetector
+    private lateinit var mainInputController: InputController
 
     private lateinit var fieldRenderer: FieldRenderer
 
@@ -49,6 +49,8 @@ class GameScreen : Screen {
 
     private lateinit var tiledMap: TiledMap
     private lateinit var tiledMapRenderer: OrthogonalTiledMapRenderer
+
+    private lateinit var groundLayer: TiledMapTileLayer
 
     override fun show() {
         createFonts()
@@ -65,7 +67,9 @@ class GameScreen : Screen {
         params.textureMinFilter = Texture.TextureFilter.MipMapLinearLinear
         tiledMap = TmxMapLoader().load("maps/test.tmx", params)
 
-        tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, 1.0f / 64.0f)
+        groundLayer = tiledMap.layers.get("ground") as TiledMapTileLayer
+
+        tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, 1.0f / groundLayer.tileWidth)
         disposables.addAll(arrayOf(tiledMapRenderer, tiledMap))
 
         field = Field(tiledMap)
@@ -94,7 +98,7 @@ class GameScreen : Screen {
     }
 
     override fun render(delta: Float) {
-        //processInput()
+        mainInputController.update(delta)
 
         camera.update()
 

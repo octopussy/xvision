@@ -1,5 +1,9 @@
 package com.borschlabs.xcom.input;
 
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenAccessor;
+import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
@@ -16,17 +20,30 @@ public class InputController extends GestureDetector {
 
    private final OrthographicCamera camera;
 
+   private TweenManager tweenManager;
+
    public InputController(OrthographicCamera camera) {
       super(new GListener(camera));
       this.camera = camera;
       camera.zoom = MIN_ZOOM;
+
+      tweenManager = new TweenManager();
+      Tween.registerAccessor(OrthographicCamera.class, new CameraAccessor());
+   }
+
+   public void update(float deltaTime) {
+      tweenManager.update(deltaTime);
    }
 
    @Override
    public boolean scrolled(int amount) {
-      camera.zoom += amount * 0.1f;
+      tweenManager.killAll();
 
-      camera.zoom = MathUtils.clamp(camera.zoom, MIN_ZOOM, MAX_ZOOM);
+      Tween.to(camera, CameraAccessor.TYPE_ZOOM, 1)
+         .target(camera.zoom + 0.01f * amount)
+         .ease(Quad.OUT)
+         .start(tweenManager);
+
       return false;
    }
 
@@ -70,6 +87,34 @@ public class InputController extends GestureDetector {
       @Override
       public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
          return false;
+      }
+   }
+
+   private static class CameraAccessor implements TweenAccessor<OrthographicCamera> {
+
+      final static int TYPE_ZOOM = 1;
+
+      @Override
+      public int getValues(OrthographicCamera target, int tweenType, float[] returnValues) {
+         switch (tweenType) {
+            case TYPE_ZOOM:
+               returnValues[0] = target.zoom;
+               return 1;
+            default:
+               returnValues[0] = 0;
+               return 1;
+         }
+      }
+
+      @Override
+      public void setValues(OrthographicCamera target, int tweenType, float[] newValues) {
+         switch (tweenType) {
+            case TYPE_ZOOM:
+               target.zoom = newValues[0];
+               target.zoom = MathUtils.clamp(target.zoom, MIN_ZOOM, MAX_ZOOM);
+               break;
+            default: break;
+         }
       }
    }
 }
