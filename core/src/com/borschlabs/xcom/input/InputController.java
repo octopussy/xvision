@@ -11,14 +11,15 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class InputController extends GestureDetector {
 
-   private static final float MIN_ZOOM = 0.05f;
-   private static final float MAX_ZOOM = 3f;
+   private static final float MIN_ZOOM = 0.01f;
+   private static final float MAX_ZOOM = 0.05f;
 
    private final OrthographicCamera camera;
 
    public InputController(OrthographicCamera camera) {
       super(new GListener(camera));
       this.camera = camera;
+      camera.zoom = MIN_ZOOM;
    }
 
    @Override

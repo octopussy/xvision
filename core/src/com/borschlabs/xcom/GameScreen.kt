@@ -59,7 +59,11 @@ class GameScreen : Screen {
         uiBatch.shader = fontShader
         disposables.addAll(arrayOf(uiBatch, debugShapeRenderer))
 
-        tiledMap = TmxMapLoader().load("maps/test.tmx")
+        val params = TmxMapLoader.Parameters()
+        params.generateMipMaps = true
+        params.textureMagFilter = Texture.TextureFilter.MipMapLinearLinear
+        params.textureMinFilter = Texture.TextureFilter.MipMapLinearLinear
+        tiledMap = TmxMapLoader().load("maps/test.tmx", params)
 
         tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, 1.0f / 64.0f)
         disposables.addAll(arrayOf(tiledMapRenderer, tiledMap))
@@ -80,10 +84,8 @@ class GameScreen : Screen {
     }
 
     override fun resize(width: Int, height: Int) {
-        val ar = width / height.toFloat()
-        camera.setToOrtho(false, VP_SIZE * ar, VP_SIZE)
+        camera.setToOrtho(false, width.toFloat(), height.toFloat())
         camera.position.set(field.width / 2.0f, field.height / 2.0f, 0.0f)
-        camera.zoom = 0.1f
         camera.update()
 
         val m = Matrix4()
