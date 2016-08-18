@@ -19,12 +19,19 @@ class WorldRenderer(val world: World,
                     val debugShapeRenderer: ShapeRenderer) : Disposable {
 
     private var tiledMapRenderer: OrthogonalTiledMapRenderer
+    private var shapeRenderer: ShapeRenderer
 
     private var groundLayer: TiledMapTileLayer
+
+    private var renderContext: RenderContext
 
     init {
         groundLayer = tiledMap.layers.get("ground") as TiledMapTileLayer
         tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap)
+
+        shapeRenderer = ShapeRenderer()
+
+        renderContext = RenderContext(tiledMapRenderer.batch, shapeRenderer, camera)
     }
 
     fun render(delta: Float) {
@@ -32,7 +39,7 @@ class WorldRenderer(val world: World,
         tiledMapRenderer.setView(camera)
         tiledMapRenderer.render()
 
-        world.units.forEach { it.render(tiledMapRenderer.batch, delta) }
+        world.units.forEach { it.render(renderContext, delta) }
 
         drawDebugGeometry()
     }
@@ -42,9 +49,9 @@ class WorldRenderer(val world: World,
     }
 
     private fun drawDebugGeometry() {
-       // drawDebugGrid()
+        // drawDebugGrid()
         drawDebugBounds()
-       // drawObstacles()
+        // drawObstacles()
     }
 
     private fun drawDebugBounds() {
@@ -82,7 +89,7 @@ class WorldRenderer(val world: World,
         world.obstacles.forEach { fillCell(it.x, it.y, Color.RED) }
     }
 
-    private fun fillCell(cellX: Int, cellY:Int, color:Color) {
+    private fun fillCell(cellX: Int, cellY: Int, color: Color) {
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) {
             rect(cellX.toFloat(), cellY.toFloat(), 1.0f, 1.0f)
         }

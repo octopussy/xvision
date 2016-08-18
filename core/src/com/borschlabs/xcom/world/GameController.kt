@@ -19,6 +19,10 @@ class GameController(val world: World) : Disposable {
         playerTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearLinear);
     }
 
+    override fun dispose() {
+        playerTexture.dispose()
+    }
+
     fun spawnPlayer(x: Int, y: Int) {
         val sprite = Sprite(playerTexture)
 
@@ -28,7 +32,7 @@ class GameController(val world: World) : Disposable {
         world.units.add(player!!)
     }
 
-    override fun dispose() {
-        playerTexture.dispose()
+    fun startPlayerTurn() {
+        player?.startNewTurn()
     }
 }

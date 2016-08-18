@@ -103,8 +103,8 @@ class InputController(private val camera: OrthographicCamera) : GestureDetector(
 
     companion object {
 
-        private val MIN_ZOOM = 1.0f
-        private val MAX_ZOOM = 3.0f
+        private val MIN_ZOOM = 0.5f
+        private val MAX_ZOOM = 1.5f
         private val ZOOM_SPEED = 1.0f
     }
 }

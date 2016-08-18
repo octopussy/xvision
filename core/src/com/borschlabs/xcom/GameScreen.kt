@@ -15,6 +15,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.borschlabs.xcom.input.InputController
+import com.borschlabs.xcom.renderer.RenderContext
 import com.borschlabs.xcom.renderer.WorldRenderer
 import com.borschlabs.xcom.world.GameController
 import com.borschlabs.xcom.world.World
@@ -26,6 +27,8 @@ import com.borschlabs.xcom.world.World
 class GameScreen : Screen {
 
     private val disposables: MutableList<Disposable> = mutableListOf()
+
+    private lateinit var renderContext: RenderContext
 
     private lateinit var fontTexture: Texture
     private lateinit var font: BitmapFont
@@ -72,6 +75,7 @@ class GameScreen : Screen {
         initGameController()
 
         gameController.spawnPlayer(3, 3)
+        gameController.startPlayerTurn()
 
         camera.update()
     }
@@ -106,8 +110,6 @@ class GameScreen : Screen {
 
         Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
         /*// player
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
