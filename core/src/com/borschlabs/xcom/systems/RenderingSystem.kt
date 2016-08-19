@@ -14,10 +14,9 @@ import com.borschlabs.xcom.components.TransformComponent
  * @author octopussy
  */
 
-class RenderingSystem(val tiledMap: TiledMap) : EntitySystem() {
+class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : EntitySystem() {
 
     private val batch: SpriteBatch = SpriteBatch()
-    private val camera: OrthographicCamera = OrthographicCamera(1000.0f, 1000.0f)
 
     private val tiledMapRenderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
 
@@ -34,6 +33,8 @@ class RenderingSystem(val tiledMap: TiledMap) : EntitySystem() {
     }
 
     override fun update(deltaTime: Float) {
+        camera.update()
+
         tiledMapRenderer.setView(camera)
         tiledMapRenderer.render()
 

@@ -15,7 +15,7 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import com.borschlabs.xcom.components.TextureComponent
 import com.borschlabs.xcom.components.TransformComponent
-import com.borschlabs.xcom.renderer.RenderContext
+import com.borschlabs.xcom.systems.CameraSystem
 import com.borschlabs.xcom.systems.RenderingSystem
 
 /**
@@ -28,25 +28,9 @@ class GameScreen : Screen {
 
     private lateinit var engine: Engine
 
-    private lateinit var renderContext: RenderContext
-
     private lateinit var fontTexture: Texture
     private lateinit var font: BitmapFont
     private lateinit var fontShader: ShaderProgram
-    //private lateinit var uiBatch: SpriteBatch
-
-    //private lateinit var camera: OrthographicCamera
-
-    //private lateinit var debugShapeRenderer: ShapeRenderer
-
-    //private lateinit var inputMultiplexer: InputMultiplexer
-    //private lateinit var mainInputController: InputController
-
-    //private lateinit var world: World_
-
-    //private lateinit var worldRenderer: WorldRenderer
-
-    //private lateinit var gameController:GameController
 
     override fun show() {
         createFonts()
@@ -63,24 +47,12 @@ class GameScreen : Screen {
         params.textureMinFilter = Texture.TextureFilter.MipMapLinearLinear
         val tiledMap = TmxMapLoader().load("maps/test.tmx", params)
 
-        //camera = OrthographicCamera()
-
-        //world = World_(tiledMap)
-        //worldRenderer = WorldRenderer(world, tiledMap, camera, debugShapeRenderer)
-
-        //disposables.addAll(arrayOf(worldRenderer, tiledMap))
-
-        //initInput()
-
-    //    initGameController()
-
-//        gameController.spawnPlayer(3, 3)
- //       gameController.startPlayerTurn()
-
-        //camera.update()
-
         engine = PooledEngine()
-        engine.addSystem(RenderingSystem(tiledMap))
+        val cameraSystem = CameraSystem()
+        engine.addSystem(cameraSystem)
+        engine.addSystem(RenderingSystem(cameraSystem.camera, tiledMap))
+
+        Gdx.input.inputProcessor = cameraSystem.inputProcessor
 
         createPlayer()
 
@@ -168,11 +140,5 @@ class GameScreen : Screen {
         fontShader = ShaderProgram(Gdx.files.internal("shaders/font.vsh"), Gdx.files.internal("shaders/font.fsh"))
         println(if (fontShader.isCompiled) "Font shader compiled!" else fontShader.log)
         disposables.addAll(arrayOf(fontTexture, font, fontShader))
-    }
-
-    private fun initInput() {
-     //   mainInputController = InputController(camera)
-      //  inputMultiplexer = InputMultiplexer(mainInputController)
-      //  Gdx.input.inputProcessor = inputMultiplexer
     }
 }
