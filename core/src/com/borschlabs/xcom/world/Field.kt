@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Array
  * @author octopussy
  */
 
-class World_(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
+class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
     private var cells:List<FieldCell> = mutableListOf()
     private var collisionLayer: TiledMapTileLayer
@@ -20,8 +20,6 @@ class World_(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
     val height:Int get() = collisionLayer.height
 
     val cellSize:Float get() = collisionLayer.tileWidth
-
-    val units:MutableList<GameUnit> = mutableListOf()
     val obstacles:MutableList<FieldCell> = mutableListOf()
 
     init {

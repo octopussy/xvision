@@ -10,7 +10,7 @@ import com.borschlabs.xcom.clamp
  * @author octopussy
  */
 
-class GameUnitTurnArea(val world: World_) {
+class GameUnitTurnArea(val field: Field) {
     private var _reachableCells: MutableSet<FieldCell> = mutableSetOf()
 
     val reachableCells: List<FieldCell>
@@ -20,16 +20,16 @@ class GameUnitTurnArea(val world: World_) {
         _reachableCells = mutableSetOf()
         _reachableCells.add(startCell)
 
-        val minX = (startCell.x - maxDistance).clamp(0, world.width - 1)
-        val minY = (startCell.y - maxDistance).clamp(0, world.height - 1)
-        val maxX = (startCell.x + maxDistance).clamp(0, world.width - 1)
-        val maxY = (startCell.y + maxDistance).clamp(0, world.height - 1)
+        val minX = (startCell.x - maxDistance).clamp(0, field.width - 1)
+        val minY = (startCell.y - maxDistance).clamp(0, field.height - 1)
+        val maxX = (startCell.x + maxDistance).clamp(0, field.width - 1)
+        val maxY = (startCell.y + maxDistance).clamp(0, field.height - 1)
 
         var y = minY
         while (y <= maxY) {
             var x = minX
             while (x <= maxX) {
-                val c = world.getCell(x, y)
+                val c = field.getCell(x, y)
                 if (!_reachableCells.contains(c)){
                     traceRoute(startCell.x, startCell.y, x, y, maxDistance)
                 }
@@ -42,9 +42,9 @@ class GameUnitTurnArea(val world: World_) {
     }
 
     private fun traceRoute(startX: Int, startY: Int, targetX: Int, targetY: Int, maxDistance: Int) {
-        val finder = IndexedAStarPathFinder<FieldCell>(world)
+        val finder = IndexedAStarPathFinder<FieldCell>(field)
         val path:GraphPath<FieldCell> = DefaultGraphPath<FieldCell>()
-        finder.searchNodePath(world.getCell(startX, startY), world.getCell(targetX, targetY), FieldHeuristic(), path)
+        finder.searchNodePath(field.getCell(startX, startY), field.getCell(targetX, targetY), FieldHeuristic(), path)
 
         var depth = maxDistance + 1
         for (c in path) {

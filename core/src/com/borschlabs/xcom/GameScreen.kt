@@ -1,7 +1,6 @@
 package com.borschlabs.xcom
 
 import com.badlogic.ashley.core.Engine
-import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
@@ -11,12 +10,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
-import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
-import com.borschlabs.xcom.components.TextureComponent
-import com.borschlabs.xcom.components.TransformComponent
+import com.borschlabs.xcom.entities.Player
 import com.borschlabs.xcom.systems.CameraSystem
+import com.borschlabs.xcom.systems.CoreSystem
 import com.borschlabs.xcom.systems.RenderingSystem
+import com.borschlabs.xcom.world.Field
 
 /**
  * @author octopussy
@@ -47,32 +46,21 @@ class GameScreen : Screen {
         params.textureMinFilter = Texture.TextureFilter.MipMapLinearLinear
         val tiledMap = TmxMapLoader().load("maps/test.tmx", params)
 
+        val field = Field(tiledMap)
+
         engine = PooledEngine()
         val cameraSystem = CameraSystem()
         engine.addSystem(cameraSystem)
         engine.addSystem(RenderingSystem(cameraSystem.camera, tiledMap))
+        engine.addSystem(CoreSystem(field))
 
         Gdx.input.inputProcessor = cameraSystem.inputProcessor
 
-        createPlayer()
+        val player = Player(field)
+        player.setCell(3, 3)
+        engine.addEntity(player)
 
         resize(Gdx.graphics.width, Gdx.graphics.height)
-    }
-
-    private fun createPlayer() {
-        val playerTexture = Texture(Gdx.files.internal("player.png"), true)
-        playerTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearLinear);
-
-        val player = Entity()
-        val trans = TransformComponent()
-        val texture = TextureComponent()
-        trans.pos = Vector3(32.0f, 32.0f, 0.0f)
-        trans.rotation = 45.0f
-        texture.region = TextureRegion(playerTexture)
-        player.add(trans)
-        player.add(texture)
-
-        engine.addEntity(player)
     }
 
     private fun initGameController() {

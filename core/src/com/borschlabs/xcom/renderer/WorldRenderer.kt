@@ -7,13 +7,13 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.utils.Disposable
-import com.borschlabs.xcom.world.World_
+import com.borschlabs.xcom.world.Field
 
 /**
  * @author octopussy
  */
 
-class WorldRenderer(val world: World_,
+class WorldRenderer(val field: Field,
                     val tiledMap: TiledMap,
                     val camera: OrthographicCamera,
                     val debugShapeRenderer: ShapeRenderer) : Disposable {
@@ -39,8 +39,6 @@ class WorldRenderer(val world: World_,
         tiledMapRenderer.setView(camera)
         tiledMapRenderer.render()
 
-        world.units.forEach { it.render(renderContext, delta) }
-
         drawDebugGeometry()
     }
 
@@ -55,8 +53,8 @@ class WorldRenderer(val world: World_,
     }
 
     private fun drawDebugBounds() {
-        val w = world.width.toFloat()
-        val h = world.height.toFloat()
+        val w = field.width.toFloat()
+        val h = field.height.toFloat()
 
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.RED) {
             line(0.0f, 0.0f, 0.0f, h)
@@ -67,8 +65,8 @@ class WorldRenderer(val world: World_,
     }
 
     private fun drawDebugGrid() {
-        val w = world.width.toFloat()
-        val h = world.height.toFloat()
+        val w = field.width.toFloat()
+        val h = field.height.toFloat()
 
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color(0.0f, 1.0f, 0.0f, 0.1f)) {
             var i = w.toFloat()
@@ -86,7 +84,7 @@ class WorldRenderer(val world: World_,
     }
 
     private fun drawObstacles() {
-        world.obstacles.forEach { fillCell(it.x, it.y, Color.RED) }
+        field.obstacles.forEach { fillCell(it.x, it.y, Color.RED) }
     }
 
     private fun fillCell(cellX: Int, cellY: Int, color: Color) {

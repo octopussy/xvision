@@ -9,17 +9,17 @@ import com.borschlabs.xcom.renderer.RenderContext
  * @author octopussy
  */
 
-open class GameUnit(val world: World_, sprite: Sprite) : Sprite(sprite) {
+open class GameUnit(val field: Field, sprite: Sprite) : Sprite(sprite) {
     var position: FieldCell? = null
         set(value) {
             field = value
             val cellX = value?.x ?: 0
             val cellY = value?.y ?: 0
-            x = cellX * world.cellSize
-            y = cellY * world.cellSize
+            x = cellX * this.field.cellSize
+            y = cellY * this.field.cellSize
         }
 
-    val turnArea = GameUnitTurnArea(world)
+    val turnArea = GameUnitTurnArea(field)
 
     private val turnAreaColor = Color(0.0f, 1.0f, 1.0f, 0.1f)
 
@@ -46,7 +46,7 @@ open class GameUnit(val world: World_, sprite: Sprite) : Sprite(sprite) {
             shapeRenderer.projectionMatrix = renderContext.camera.combined
             shapeRenderer.color = turnAreaColor
             for (c in turnArea.reachableCells) {
-                shapeRenderer.rect(c.x * world.cellSize, c.y * world.cellSize, world.cellSize, world.cellSize)
+                shapeRenderer.rect(c.x * field.cellSize, c.y * field.cellSize, field.cellSize, field.cellSize)
             }
             shapeRenderer.end()
         }
