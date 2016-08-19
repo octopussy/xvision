@@ -7,13 +7,13 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.utils.Disposable
-import com.borschlabs.xcom.world.World
+import com.borschlabs.xcom.world.World_
 
 /**
  * @author octopussy
  */
 
-class WorldRenderer(val world: World,
+class WorldRenderer(val world: World_,
                     val tiledMap: TiledMap,
                     val camera: OrthographicCamera,
                     val debugShapeRenderer: ShapeRenderer) : Disposable {

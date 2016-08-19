@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Array
  * @author octopussy
  */
 
-class World(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
+class World_(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
     private var cells:List<FieldCell> = mutableListOf()
     private var collisionLayer: TiledMapTileLayer

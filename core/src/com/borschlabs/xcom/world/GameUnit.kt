@@ -9,7 +9,7 @@ import com.borschlabs.xcom.renderer.RenderContext
  * @author octopussy
  */
 
-open class GameUnit(val world: World, sprite: Sprite) : Sprite(sprite) {
+open class GameUnit(val world: World_, sprite: Sprite) : Sprite(sprite) {
     var position: FieldCell? = null
         set(value) {
             field = value

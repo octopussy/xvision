@@ -10,7 +10,7 @@ import com.borschlabs.xcom.clamp
  * @author octopussy
  */
 
-class GameUnitTurnArea(val world: World) {
+class GameUnitTurnArea(val world: World_) {
     private var _reachableCells: MutableSet<FieldCell> = mutableSetOf()
 
     val reachableCells: List<FieldCell>

@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Disposable
  * @author octopussy
  */
 
-class GameController(val world: World) : Disposable {
+class GameController(val world: World_) : Disposable {
     private var player: PlayerUnit? = null
 
     private var playerTexture: Texture
