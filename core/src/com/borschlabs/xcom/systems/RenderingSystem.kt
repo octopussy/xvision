@@ -42,9 +42,11 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
     private val debugShapeRenderer: ShapeRenderer = ShapeRenderer()
 
+    private val mainShaderProgram: ShaderProgram
+
     private var visMapFB: FrameBuffer? = null
-    private var visMapShaderProgram: ShaderProgram
-    private var visMapMesh: Mesh
+    private val visMapShaderProgram: ShaderProgram
+    private val visMapMesh: Mesh
 
     private var visMapVertices: FloatArray = FloatArray(16)
     private var walls: MutableList<Poly.Wall> = mutableListOf()
@@ -64,10 +66,15 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     private var routes: ImmutableArray<Entity> = ImmutableArray(Array())
 
     init {
+        mainShaderProgram = ShaderProgram(Gdx.files.internal("shaders/main.vsh"), Gdx.files.internal("shaders/main.fsh"))
+        println(if (mainShaderProgram.isCompiled()) "Main shader compiled!" else mainShaderProgram.getLog())
+
         visMapShaderProgram = ShaderProgram(Gdx.files.internal("shaders/vis_field.vsh"), Gdx.files.internal("shaders/vis_field.fsh"))
         println(if (visMapShaderProgram.isCompiled) "Lightmap shader compiled!" else visMapShaderProgram.log)
 
         visMapMesh = Mesh(false, 4096, 0, VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"))
+
+        batch.shader = mainShaderProgram
     }
 
     override fun addedToEngine(engine: Engine) {
@@ -87,12 +94,26 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     override fun update(deltaTime: Float) {
         camera.update()
 
+        drawVisMap()
+
+        // set vis map
+        mainShaderProgram.begin()
+
+        Gdx.graphics.gL20.glActiveTexture(GL20.GL_TEXTURE1)
+        visMapFB!!.colorBufferTexture.bind()
+
+        mainShaderProgram.setUniformi("u_vismap", 1)
+
+        Gdx.graphics.gL20.glActiveTexture(GL20.GL_TEXTURE0)
+
         tiledMapRenderer.setView(camera)
         tiledMapRenderer.render()
 
+        mainShaderProgram.end()
+
         debugShapeRenderer.projectionMatrix = camera.combined
 
-        drawTurnAreas()
+        //drawTurnAreas()
 
         batch.projectionMatrix = camera.combined
         batch.begin()
@@ -102,8 +123,6 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         batch.end()
 
         drawRoutes()
-
-        drawVisMap()
     }
 
     private fun drawVisibleObjects() {

@@ -7,8 +7,8 @@ uniform vec2 u_centerPoint;
 varying vec2 v_vertPos;
 
 void main() {
-    float max_distance = 37.0;
-    float min_distance = 25.0;
+    float max_distance = 370.0;
+    float min_distance = 250.0;
 
     float d = (distance(u_centerPoint, v_vertPos) - min_distance) / (max_distance - min_distance);
     float a = 1.0 - smoothstep(0.0, 1.0, d);
