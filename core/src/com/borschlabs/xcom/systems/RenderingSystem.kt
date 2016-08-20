@@ -19,7 +19,8 @@ import com.borschlabs.xcom.components.GameUnitComponent
 import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TextureComponent
 import com.borschlabs.xcom.components.TransformComponent
-import com.borschlabs.xcom.renderer.draw
+import com.borschlabs.xcom.draw
+import com.borschlabs.xcom.world.FieldCell
 import com.borschlabs.xcom.world.GameUnitTurnArea
 
 /**
@@ -101,14 +102,14 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
         debugShapeRenderer.color = ROUTE_COLOR
         for (r in routes) {
             val routeComp = Mappers.ROUTE.get(r)
-            val from = routeComp.fromCell
-            val to = routeComp.toCell
-            if (from != null && to != null) {
-                debugShapeRenderer.line(
-                        from.x * cellSize + cellSize / 2.0f,
-                        from.y * cellSize + cellSize / 2.0f,
-                        to.x * cellSize + cellSize / 2.0f,
-                        to.y * cellSize + cellSize / 2.0f)
+            if (routeComp.route.size > 1) {
+                var from = routeComp.route[0]
+                var i = 1
+                while (i < routeComp.route.size) {
+                    drawRouteSeg(from, routeComp.route[i])
+                    from = routeComp.route[i]
+                    ++i
+                }
             }
         }
 
@@ -127,6 +128,14 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) {
             rect(cellX.toFloat() * cellSize, cellY.toFloat() * cellSize, cellSize, cellSize)
         }
+    }
+
+    private fun drawRouteSeg(from: FieldCell, to: FieldCell) {
+        debugShapeRenderer.line(
+                from.x * cellSize + cellSize / 2.0f,
+                from.y * cellSize + cellSize / 2.0f,
+                to.x * cellSize + cellSize / 2.0f,
+                to.y * cellSize + cellSize / 2.0f)
     }
 
     private fun enableBlending() {

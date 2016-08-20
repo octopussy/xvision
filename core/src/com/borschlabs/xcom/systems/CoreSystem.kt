@@ -44,12 +44,6 @@ class CoreSystem(val field: Field) : EntitySystem() {
                         unitComponent.isTurnAreaVisible = true
                         transComponent.pos.x = cell.x * field.cellSize
                         transComponent.pos.y = cell.y * field.cellSize
-
-
-                        if (!unitComponent.isTurnAreaCalculated) {
-                            unitComponent.turnArea.calculateArea(cell, unitComponent.actionPoints)
-                            unitComponent.isTurnAreaCalculated = true
-                        }
                     }
                 }
                 GameUnitComponent.Companion.State.MOVING -> {
@@ -61,8 +55,7 @@ class CoreSystem(val field: Field) : EntitySystem() {
 
     fun startPlayerTurn() {
         getPlayer()?.let {
-            val unit = Mappers.GAME_UNIT.get(it)
-            unit.actionPoints = 10
+            Mappers.GAME_UNIT.get(it).startTurn(20)
             state = CoreState.WAIT_FOR_PLAYER_TURN
         }
     }
@@ -81,25 +74,29 @@ class CoreSystem(val field: Field) : EntitySystem() {
                     val unit = Mappers.GAME_UNIT.get(it)
                     if (cell != null && unit.turnArea.reachableCells.contains(cell)) {
                         setRouteTo(it, cell)
+                    } else {
+                        removeRoute(it)
                     }
                 }
             }
         }
     }
 
-    private fun setRouteTo(e: Entity, cell: FieldCell) {
-        val routeComp = if (Mappers.ROUTE.has(e))
+    private fun setRouteTo(e: Entity, targetCell: FieldCell) {
+        val playerComp = Mappers.GAME_UNIT.get(e)
+        val sourceCell = playerComp.cell
+        val routeComponent = if (Mappers.ROUTE.has(e)) {
             Mappers.ROUTE.get(e)
+        }
         else {
             val newRoute = RouteComponent()
             e.add(newRoute)
             newRoute
         }
 
-        val plComp = Mappers.GAME_UNIT.get(e)
-
-        routeComp.fromCell = plComp.cell
-        routeComp.toCell = cell
+        if (sourceCell != null) {
+            routeComponent.route = playerComp.turnArea.getRoute(sourceCell, targetCell)
+        }
     }
 
     private fun removeRoute(e: Entity) {

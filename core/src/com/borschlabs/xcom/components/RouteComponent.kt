@@ -8,7 +8,5 @@ import com.borschlabs.xcom.world.FieldCell
  */
 
 class RouteComponent : Component {
-
-    var fromCell: FieldCell? = null
-    var toCell: FieldCell? = null
+    var route:List<FieldCell> = listOf()
 }

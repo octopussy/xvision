@@ -19,13 +19,18 @@ class GameUnitComponent(field: Field) : Component {
 
     var isTurnAreaVisible = false
 
-    var isTurnAreaCalculated = false
-
     var turnArea: GameUnitTurnArea = GameUnitTurnArea(field)
 
+    fun startTurn(actionPoints: Int) {
+        this.actionPoints = actionPoints
+        if (cell != null)
+            turnArea.calculateArea(cell!!, actionPoints)
+
+    }
     companion object {
         enum class State {
             IDLE, MOVING
         }
+
     }
 }

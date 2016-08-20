@@ -41,6 +41,17 @@ class GameUnitTurnArea(val field: Field) {
         }
     }
 
+    fun getRoute(startCell: FieldCell, targetCell: FieldCell): List<FieldCell> {
+        val finder = IndexedAStarPathFinder<FieldCell>(field)
+        val path:GraphPath<FieldCell> = DefaultGraphPath<FieldCell>()
+        finder.searchNodePath(startCell, targetCell, FieldHeuristic(), path)
+
+        val result: MutableList<FieldCell> = mutableListOf()
+
+        path.forEach { result.add(it) }
+        return result
+    }
+
     private fun traceRoute(startX: Int, startY: Int, targetX: Int, targetY: Int, maxDistance: Int) {
         val finder = IndexedAStarPathFinder<FieldCell>(field)
         val path:GraphPath<FieldCell> = DefaultGraphPath<FieldCell>()
