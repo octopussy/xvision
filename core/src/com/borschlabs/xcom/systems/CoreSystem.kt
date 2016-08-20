@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.EntitySystem
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.utils.ImmutableArray
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.Array
 import com.borschlabs.xcom.components.GameUnitComponent
 import com.borschlabs.xcom.components.PlayerComponent
@@ -12,6 +13,7 @@ import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TransformComponent
 import com.borschlabs.xcom.world.Field
 import com.borschlabs.xcom.world.FieldCell
+import com.borschlabs.xcom.world.Route
 
 /**
  * @author octopussy
@@ -41,13 +43,12 @@ class CoreSystem(val field: Field) : EntitySystem() {
                     val cell = unitComponent.cell
 
                     if (cell != null) {
-                        unitComponent.isTurnAreaVisible = true
                         transComponent.pos.x = cell.x * field.cellSize
                         transComponent.pos.y = cell.y * field.cellSize
                     }
                 }
                 GameUnitComponent.Companion.State.MOVING -> {
-                    unitComponent.isTurnAreaVisible = false
+                    unitComponent.stepMovement(deltaTime, 5f)
                 }
             }
         }
@@ -65,42 +66,43 @@ class CoreSystem(val field: Field) : EntitySystem() {
         val fy = Math.floor(y / field.cellSize.toDouble())
 
         val cell = field.getCell(fx.toInt(), fy.toInt())
-        when (state) {
 
-            CoreSystem.CoreState.UNKNOWN -> {}
-
-            CoreSystem.CoreState.WAIT_FOR_PLAYER_TURN -> {
-                getPlayer()?.let {
-                    val unit = Mappers.GAME_UNIT.get(it)
-                    if (cell != null && unit.turnArea.reachableCells.contains(cell)) {
-                        setRouteTo(it, cell)
-                    } else {
-                        removeRoute(it)
+        getPlayer()?.let {
+            val unitC = Mappers.GAME_UNIT.get(it)
+            when (unitC.state) {
+                GameUnitComponent.Companion.State.IDLE -> {
+                    val isInTurnArea = unitC.turnArea.reachableCells.contains(cell)
+                    if (cell != null && isInTurnArea) {
+                        setRouteToOrGo(it, cell)
                     }
                 }
+                GameUnitComponent.Companion.State.MOVING -> { /* do nothing */ }
             }
         }
     }
 
-    private fun setRouteTo(e: Entity, targetCell: FieldCell) {
-        val playerComp = Mappers.GAME_UNIT.get(e)
-        val sourceCell = playerComp.cell
+    private fun setRouteToOrGo(e: Entity, targetCell: FieldCell) {
+        val unitComponent = Mappers.GAME_UNIT.get(e)
+        val sourceCell = unitComponent.cell
         val routeComponent = if (Mappers.ROUTE.has(e)) {
             Mappers.ROUTE.get(e)
         }
         else {
-            val newRoute = RouteComponent()
-            e.add(newRoute)
-            newRoute
+            val newRouteComp = RouteComponent()
+            e.add(newRouteComp)
+            newRouteComp
+        }
+
+        // tap to the end of the route?
+        if (routeComponent.route.cells.isNotEmpty() && targetCell == routeComponent.route.cells.last()) {
+            unitComponent.startMoving(routeComponent.route)
+            e.remove(RouteComponent::class.java)
+            Gdx.app.log(TAG, "Start movement to $targetCell")
         }
 
         if (sourceCell != null) {
-            routeComponent.route = playerComp.turnArea.getRoute(sourceCell, targetCell)
+            routeComponent.route = Route(unitComponent.turnArea.getRoute(sourceCell, targetCell))
         }
-    }
-
-    private fun removeRoute(e: Entity) {
-        e.remove(RouteComponent::class.java)
     }
 
     private fun getPlayer():Entity? = if (players.size() > 0) players.first() else null

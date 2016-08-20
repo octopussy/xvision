@@ -1,12 +1,12 @@
 package com.borschlabs.xcom.components
 
 import com.badlogic.ashley.core.Component
-import com.borschlabs.xcom.world.FieldCell
+import com.borschlabs.xcom.world.Route
 
 /**
  * @author octopussy
  */
 
 class RouteComponent : Component {
-    var route:List<FieldCell> = listOf()
+    var route: Route = Route()
 }

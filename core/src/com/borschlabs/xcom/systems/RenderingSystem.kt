@@ -90,7 +90,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
         enableBlending()
         for (e in units) {
             val unit = Mappers.GAME_UNIT.get(e)
-            if (unit.isTurnAreaVisible) {
+            if (unit.state == GameUnitComponent.Companion.State.IDLE) {
                 drawTurnArea(unit.turnArea)
             }
         }
@@ -102,15 +102,17 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
         debugShapeRenderer.color = ROUTE_COLOR
         for (r in routes) {
             val routeComp = Mappers.ROUTE.get(r)
-            if (routeComp.route.size > 1) {
-                var from = routeComp.route[0]
+            val cells = routeComp.route.cells
+            if (cells.size > 1) {
+                var from = cells[0]
                 var i = 1
-                while (i < routeComp.route.size) {
-                    drawRouteSeg(from, routeComp.route[i])
-                    from = routeComp.route[i]
+                while (i < cells.size) {
+                    drawRouteSeg(from, cells[i])
+                    from = cells[i]
                     ++i
                 }
             }
+
         }
 
         debugShapeRenderer.end()
