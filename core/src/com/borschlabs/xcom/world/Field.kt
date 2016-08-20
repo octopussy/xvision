@@ -50,9 +50,7 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
     override fun getNodeCount(): Int = width * height
 
-    fun getVisibleWalls(center: Vector3, maxDistance: Float): List<Poly.Wall> {
-        val walls = mutableListOf<Poly.Wall>()
-
+    fun getVisibleWalls(center: Vector3, maxDistance: Float, walls: MutableList<Poly.Wall>) {
         val leftX = center.x - maxDistance
         val rightX = center.x + maxDistance
         val topY = center.y + maxDistance
@@ -64,8 +62,6 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
             o.getFacingWalls(center, walls)
         }
-
-        return walls
     }
 
 

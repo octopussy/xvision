@@ -165,9 +165,13 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
     private var visMapVertices: FloatArray = FloatArray(16)
     private var bounds: Poly = Poly()
-    private val geometry = ArrayList<Poly>()
     private var walls: MutableList<Poly.Wall> = mutableListOf()
     private var visibleMapBuilder: VisibleMapBuilder = VisibleMapBuilder(debugShapeRenderer)
+
+    private val leftBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val topBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val rightBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val bottomBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
 
     private fun updateBounds() {
         val width = Gdx.graphics.width.toFloat()
@@ -196,34 +200,28 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
         val playerPos2 = Vector2(playerPosition.x, playerPosition.y)
 
-        val cellSize = field.cellSize
+        walls.clear()
 
-        geometry.clear()
-        walls = ArrayList<Poly.Wall>()
+        val maxDistance = 512.0f
 
-        val visibleWalls = field.getVisibleWalls(playerPosition, 128.0f)
-        walls.addAll(visibleWalls)
+        field.getVisibleWalls(playerPosition, maxDistance, walls)
 
-        for (c in visibleWalls) {
-            /*Vector2 lb = new Vector2(c.x * CELL_SIZE, c.y * CELL_SIZE);
-            Vector2 rb = new Vector2((c.x + 1f) * CELL_SIZE, c.y * CELL_SIZE);
-            Vector2 rt = new Vector2((c.x + 1f) * CELL_SIZE, (c.y + 1f) * CELL_SIZE);
-            Vector2 lt = new Vector2(c.x * CELL_SIZE, (c.y + 1f) * CELL_SIZE);
+        leftBound.corners[0].set(playerPos2.x - maxDistance, playerPos2.y - maxDistance)
+        leftBound.corners[1].set(playerPos2.x - maxDistance, playerPos2.y + maxDistance)
 
-            walls.add(new Poly.Wall(lb, rb));
-            walls.add(new Poly.Wall(rb, rt));
-            walls.add(new Poly.Wall(rt, lt));
-            walls.add(new Poly.Wall(lt, lb));*/
-            /*addWall(c.x, c.y, c.x, c.y + 1)
-            addWall(c.x, c.y + 1, c.x + 1, c.y + 1)
-            addWall(c.x + 1, c.y + 1, c.x + 1, c.y)
-            addWall(c.x + 1, c.y, c.x, c.y)*/
-        }
+        topBound.corners[0] = leftBound.corners[1]
+        topBound.corners[1].set(playerPos2.x + maxDistance, playerPos2.y + maxDistance)
 
-       // walls.add(Poly.Wall(Vector2(bl.x, bl.y), Vector2(tl.x, tl.y)))
-      //  walls.add(Poly.Wall(Vector2(tl.x, tl.y), Vector2(tr.x, tr.y)))
-      //  walls.add(Poly.Wall(Vector2(tr.x, tr.y), Vector2(br.x, br.y)))
-      //  walls.add(Poly.Wall(Vector2(br.x, br.y), Vector2(bl.x, bl.y)))
+        rightBound.corners[0] = topBound.corners[1]
+        rightBound.corners[1].set(playerPos2.x + maxDistance, playerPos2.y - maxDistance)
+
+        bottomBound.corners[0] = rightBound.corners[1]
+        bottomBound.corners[1] = leftBound.corners[0]
+
+        walls.add(leftBound)
+        walls.add(topBound)
+        walls.add(rightBound)
+        walls.add(bottomBound)
 
         val outputPoints = ArrayList<Vector2>()
         visibleMapBuilder.build(playerPos2, walls, bounds, outputPoints)

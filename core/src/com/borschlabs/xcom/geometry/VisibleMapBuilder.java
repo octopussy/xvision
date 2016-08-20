@@ -29,10 +29,10 @@ public class VisibleMapBuilder {
          corners.addAll(Arrays.asList(w.corners));
       }
 
-      for (Poly.Wall w : bounds.walls) {
+      /*for (Poly.Wall w : bounds.walls) {
          corners.add(w.corners[0]);
          corners.add(w.corners[1]);
-      }
+      }*/
 
       Collections.sort(corners, new Comparator<Vector2>() {
          @Override
