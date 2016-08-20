@@ -19,7 +19,7 @@ public class VisibleMapBuilder {
       this.sr = sr;
    }
 
-   public void build(final Vector2 center, List<Poly.Wall> inputGeometry, Poly bounds, List<Vector2> outputPoints) {
+   public void build(final Vector2 center, List<Poly.Wall> inputGeometry, List<Vector2> outputPoints) {
       outputPoints.clear();
 
       List<Vector2> corners = new ArrayList<Vector2>();
@@ -28,11 +28,6 @@ public class VisibleMapBuilder {
       for (Poly.Wall w : inputGeometry) {
          corners.addAll(Arrays.asList(w.corners));
       }
-
-      /*for (Poly.Wall w : bounds.walls) {
-         corners.add(w.corners[0]);
-         corners.add(w.corners[1]);
-      }*/
 
       Collections.sort(corners, new Comparator<Vector2>() {
          @Override

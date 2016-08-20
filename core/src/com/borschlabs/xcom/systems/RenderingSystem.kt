@@ -6,16 +6,15 @@ import com.badlogic.ashley.core.EntitySystem
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.utils.ImmutableArray
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Array
 import com.borschlabs.xcom.components.GameUnitComponent
 import com.borschlabs.xcom.components.RouteComponent
@@ -41,9 +40,22 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     private val TURN_AREA_COLOR = Color(0f, 0f, 1f, 0.2f)
     private val ROUTE_COLOR = Color(0f, 1f, 1f, 0.6f)
 
-    private val batch: SpriteBatch = SpriteBatch()
-
     private val debugShapeRenderer: ShapeRenderer = ShapeRenderer()
+
+    private var visMapFB: FrameBuffer? = null
+    private var visMapShaderProgram: ShaderProgram
+    private var visMapMesh: Mesh
+
+    private var visMapVertices: FloatArray = FloatArray(16)
+    private var walls: MutableList<Poly.Wall> = mutableListOf()
+    private var visibleMapBuilder: VisibleMapBuilder = VisibleMapBuilder(debugShapeRenderer)
+
+    private val leftBound: Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val topBound: Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val rightBound: Poly.Wall = Poly.Wall(Vector2(), Vector2())
+    private val bottomBound: Poly.Wall = Poly.Wall(Vector2(), Vector2())
+
+    private val batch: SpriteBatch = SpriteBatch()
 
     private val tiledMapRenderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
 
@@ -51,10 +63,19 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     private var units: ImmutableArray<Entity> = ImmutableArray(Array())
     private var routes: ImmutableArray<Entity> = ImmutableArray(Array())
 
+    init {
+        visMapShaderProgram = ShaderProgram(Gdx.files.internal("shaders/vis_field.vsh"), Gdx.files.internal("shaders/vis_field.fsh"))
+        println(if (visMapShaderProgram.isCompiled) "Lightmap shader compiled!" else visMapShaderProgram.log)
+
+        visMapMesh = Mesh(false, 4096, 0, VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"))
+    }
+
     override fun addedToEngine(engine: Engine) {
         visibleObjects = engine.getEntitiesFor(Family.all(TextureComponent::class.java, TransformComponent::class.java).get())
         units = engine.getEntitiesFor(Family.all(GameUnitComponent::class.java).get())
         routes = engine.getEntitiesFor(Family.all(RouteComponent::class.java).get())
+
+        createVisMapFB(Gdx.graphics.width, Gdx.graphics.height)
     }
 
     override fun removedFromEngine(engine: Engine) {
@@ -129,6 +150,13 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
     fun resize(width: Int, height: Int) {
         camera.setToOrtho(false, width.toFloat(), height.toFloat())
+        createVisMapFB(height, width)
+    }
+
+    private fun createVisMapFB(height: Int, width: Int) {
+        visMapFB?.dispose()
+        visMapFB = FrameBuffer(Pixmap.Format.RGBA8888, width, height, false)
+        visMapFB?.colorBufferTexture?.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
     }
 
     private fun drawTurnArea(turnArea: GameUnitTurnArea) {
@@ -158,40 +186,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         Gdx.gl.glDisable(GL20.GL_BLEND)
     }
 
-    private var bl: Vector3 = Vector3.Zero
-    private var tl: Vector3 = Vector3.Zero
-    private var tr: Vector3 = Vector3.Zero
-    private var br: Vector3 = Vector3.Zero
-
-    private var visMapVertices: FloatArray = FloatArray(16)
-    private var bounds: Poly = Poly()
-    private var walls: MutableList<Poly.Wall> = mutableListOf()
-    private var visibleMapBuilder: VisibleMapBuilder = VisibleMapBuilder(debugShapeRenderer)
-
-    private val leftBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
-    private val topBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
-    private val rightBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
-    private val bottomBound:Poly.Wall = Poly.Wall(Vector2(), Vector2())
-
-    private fun updateBounds() {
-        val width = Gdx.graphics.width.toFloat()
-        val height = Gdx.graphics.height.toFloat()
-
-        bl = camera.unproject(Vector3(0f, height, 0f))
-        tl = camera.unproject(Vector3(0f, 0f, 0f))
-        tr = camera.unproject(Vector3(width, 0f, 0f))
-        br = camera.unproject(Vector3(width, height, 0f))
-
-        bounds = Poly(Vector2(bl.x, bl.y), Vector2(tl.x, tl.y),
-                Vector2(tr.x, tr.y), Vector2(br.x, br.y))
-
-        //floorMesh.setVertices(floatArrayOf(-1000f, -1000f, 0f, 0f, -1000f, 1000f, 0f, 100f, 1000f, 1000f, 100f, 100f, 1000f, -1000f, 100f, 0f))
-    }
-
     // TODO: implement pool
     private fun drawVisMap() {
-        updateBounds()
-
         val player = engine.getSystem(CoreSystem::class.java).getPlayer() ?: return
         val playerPosition = Mappers.GAME_UNIT.get(player).pos.cpy()
 
@@ -224,7 +220,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         walls.add(bottomBound)
 
         val outputPoints = ArrayList<Vector2>()
-        visibleMapBuilder.build(playerPos2, walls, bounds, outputPoints)
+        visibleMapBuilder.build(playerPos2, walls, outputPoints)
         outputPoints.add(0, playerPos2)
 
         val verticesCount = outputPoints.size
@@ -256,7 +252,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
         debugShapeRenderer.end()
 
-        val r : Random = Random()
+        val r: Random = Random()
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         enableBlending()
         walls.forEach {
@@ -264,19 +260,19 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             debugShapeRenderer.line(it.corners[0], it.corners[1])
         }
         debugShapeRenderer.end()
-        /*visMapMesh.setVertices(visMapVertices)
+        visMapMesh.setVertices(visMapVertices)
 
-        visMapFB.begin()
+        visMapFB!!.begin()
         Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 0.0f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         visMapShaderProgram.begin()
-        visMapShaderProgram.setUniformf("u_centerPoint", player)
-        visMapShaderProgram.setUniformMatrix("u_projTrans", cam.combined)
+        visMapShaderProgram.setUniformf("u_centerPoint", playerPos2)
+        visMapShaderProgram.setUniformMatrix("u_projTrans", camera.combined)
         visMapMesh.render(visMapShaderProgram, GL20.GL_TRIANGLE_FAN, 0, verticesCount)
 
         //debugMesh.render(visMapShaderProgram, GL20.GL_TRIANGLE_FAN, 0, 3);
 
         visMapShaderProgram.end()
-        visMapFB.end()*/
+        visMapFB!!.end()
     }
 }

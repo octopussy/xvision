@@ -401,7 +401,7 @@ public class NMGame extends ApplicationAdapter {
 		walls.add(new Poly.Wall(new Vector2(br.x, br.y), new Vector2(bl.x, bl.y)));
 
 		List<Vector2> outputPoints = new ArrayList<Vector2>();
-		visibleMapBuilder.build(player, walls, bounds, outputPoints);
+		visibleMapBuilder.build(player, walls, outputPoints);
 		outputPoints.add(0, player);
 
 		int verticesCount = outputPoints.size();
