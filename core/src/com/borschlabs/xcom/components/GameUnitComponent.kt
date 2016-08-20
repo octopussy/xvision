@@ -11,11 +11,11 @@ import com.borschlabs.xcom.world.GameUnitTurnArea
 
 class GameUnitComponent(field: Field) : Component {
 
-    var actionPoints:Int = 4
+    var actionPoints:Int = 0
 
     var state:State = State.IDLE
 
-    var cell:FieldCell = field.getCell(0, 0)
+    var cell:FieldCell? = null
 
     var isTurnAreaVisible = false
 

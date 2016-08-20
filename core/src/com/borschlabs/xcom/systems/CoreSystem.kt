@@ -1,11 +1,17 @@
 package com.borschlabs.xcom.systems
 
-import com.badlogic.ashley.core.*
+import com.badlogic.ashley.core.Engine
+import com.badlogic.ashley.core.Entity
+import com.badlogic.ashley.core.EntitySystem
+import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.utils.ImmutableArray
 import com.badlogic.gdx.utils.Array
 import com.borschlabs.xcom.components.GameUnitComponent
+import com.borschlabs.xcom.components.PlayerComponent
+import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TransformComponent
 import com.borschlabs.xcom.world.Field
+import com.borschlabs.xcom.world.FieldCell
 
 /**
  * @author octopussy
@@ -13,28 +19,37 @@ import com.borschlabs.xcom.world.Field
 
 class CoreSystem(val field: Field) : EntitySystem() {
 
-    private var units: ImmutableArray<Entity> = ImmutableArray(Array())
+    private var state:CoreState = CoreState.UNKNOWN
 
-    private val unitM = ComponentMapper.getFor(GameUnitComponent::class.java)
-
-    private val transM = ComponentMapper.getFor(TransformComponent::class.java)
+    private var players: ImmutableArray<Entity> = ImmutableArray(Array())
 
     override fun addedToEngine(engine: Engine) {
-        units = engine.getEntitiesFor(Family.all(GameUnitComponent::class.java, TransformComponent::class.java).get())
+        players = engine.getEntitiesFor(Family.all(
+                PlayerComponent::class.java,
+                GameUnitComponent::class.java,
+                TransformComponent::class.java).get())
     }
 
     override fun update(deltaTime: Float) {
-        for (e in units) {
-            val unitComponent = unitM.get(e)
-            val transComponent = transM.get(e)
+        for (e in players) {
+
+            val unitComponent = Mappers.GAME_UNIT.get(e)
+            val transComponent = Mappers.TRANSFORM.get(e)
+
             when (unitComponent.state) {
                 GameUnitComponent.Companion.State.IDLE -> {
-                    unitComponent.isTurnAreaVisible = true
-                    transComponent.pos.x = unitComponent.cell.x * field.cellSize
-                    transComponent.pos.y = unitComponent.cell.y * field.cellSize
+                    val cell = unitComponent.cell
 
-                    if (!unitComponent.isTurnAreaCalculated) {
-                        unitComponent.turnArea.calculateArea(unitComponent.cell, unitComponent.actionPoints)
+                    if (cell != null) {
+                        unitComponent.isTurnAreaVisible = true
+                        transComponent.pos.x = cell.x * field.cellSize
+                        transComponent.pos.y = cell.y * field.cellSize
+
+
+                        if (!unitComponent.isTurnAreaCalculated) {
+                            unitComponent.turnArea.calculateArea(cell, unitComponent.actionPoints)
+                            unitComponent.isTurnAreaCalculated = true
+                        }
                     }
                 }
                 GameUnitComponent.Companion.State.MOVING -> {
@@ -42,5 +57,63 @@ class CoreSystem(val field: Field) : EntitySystem() {
                 }
             }
         }
+    }
+
+    fun startPlayerTurn() {
+        getPlayer()?.let {
+            val unit = Mappers.GAME_UNIT.get(it)
+            unit.actionPoints = 10
+            state = CoreState.WAIT_FOR_PLAYER_TURN
+        }
+    }
+
+    fun handleTap(x: Float, y: Float) {
+        val fx = Math.floor(x / field.cellSize.toDouble())
+        val fy = Math.floor(y / field.cellSize.toDouble())
+
+        val cell = field.getCell(fx.toInt(), fy.toInt())
+        when (state) {
+
+            CoreSystem.CoreState.UNKNOWN -> {}
+
+            CoreSystem.CoreState.WAIT_FOR_PLAYER_TURN -> {
+                getPlayer()?.let {
+                    val unit = Mappers.GAME_UNIT.get(it)
+                    if (cell != null && unit.turnArea.reachableCells.contains(cell)) {
+                        setRouteTo(it, cell)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setRouteTo(e: Entity, cell: FieldCell) {
+        val routeComp = if (Mappers.ROUTE.has(e))
+            Mappers.ROUTE.get(e)
+        else {
+            val newRoute = RouteComponent()
+            e.add(newRoute)
+            newRoute
+        }
+
+        val plComp = Mappers.GAME_UNIT.get(e)
+
+        routeComp.fromCell = plComp.cell
+        routeComp.toCell = cell
+    }
+
+    private fun removeRoute(e: Entity) {
+        e.remove(RouteComponent::class.java)
+    }
+
+    private fun getPlayer():Entity? = if (players.size() > 0) players.first() else null
+
+    companion object {
+        private val TAG = "CoreSystem"
+    }
+
+    enum class CoreState {
+        UNKNOWN,
+        WAIT_FOR_PLAYER_TURN
     }
 }

@@ -18,13 +18,16 @@ import com.badlogic.gdx.math.Vector3
 class CameraSystem() : EntitySystem() {
     val camera: OrthographicCamera = OrthographicCamera(1000.0f, 1000.0f)
 
-    val inputProcessor: InputController = InputController(camera)
+    val inputProcessor: InputController = InputController(camera, { x, y ->
+        engine.getSystem(CoreSystem::class.java).handleTap(x, y)
+    })
 
     override fun update(deltaTime: Float) {
         inputProcessor.update(deltaTime)
     }
 
-    class InputController(private val camera: OrthographicCamera) : GestureDetector(GListener(camera)) {
+    class InputController(private val camera: OrthographicCamera,
+                          private val tapListener: (x: Float, y: Float) -> Unit) : GestureDetector(GListener(camera, tapListener)) {
 
         private val tweenManager: TweenManager
 
@@ -47,9 +50,16 @@ class CameraSystem() : EntitySystem() {
             return false
         }
 
-        private class GListener internal constructor(private val camera: OrthographicCamera) : GestureDetector.GestureAdapter() {
+        private class GListener internal constructor(private val camera: OrthographicCamera,
+                                                     private val tapListener: (x: Float, y: Float) -> Unit) : GestureDetector.GestureAdapter() {
 
             private var startZoom: Float = 0.toFloat()
+
+            override fun tap(x: Float, y: Float, count: Int, button: Int): Boolean {
+                val v = camera.unproject(Vector3(x, y, 0.0f))
+                tapListener(v.x, v.y)
+                return true
+            }
 
             override fun touchDown(x: Float, y: Float, pointer: Int, button: Int): Boolean {
                 if (pointer == 1) {

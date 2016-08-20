@@ -28,10 +28,10 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
         createCells()
     }
 
-    fun getCell(x: Int, y: Int): FieldCell {
+    fun getCell(x: Int, y: Int): FieldCell? {
         val index = y * width + x
         if (index < 0 || index >= width*height){
-            throw IllegalArgumentException("getCell() index out of bounds!")
+            return null
         }
 
         return cells[index]
@@ -41,19 +41,19 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
         val neighbours = mutableListOf<FieldCell>()
         val connections:Array<Connection<FieldCell>> = Array()
         if (fromNode.x > 0) {
-            neighbours.add(getCell(fromNode.x - 1, fromNode.y))
+            neighbours.add(getCell(fromNode.x - 1, fromNode.y)!!)
         }
 
         if (fromNode.x < width - 1) {
-            neighbours.add(getCell(fromNode.x + 1, fromNode.y))
+            neighbours.add(getCell(fromNode.x + 1, fromNode.y)!!)
         }
 
         if (fromNode.y > 0) {
-            neighbours.add(getCell(fromNode.x, fromNode.y - 1))
+            neighbours.add(getCell(fromNode.x, fromNode.y - 1)!!)
         }
 
         if (fromNode.y < height - 1) {
-            neighbours.add(getCell(fromNode.x, fromNode.y + 1))
+            neighbours.add(getCell(fromNode.x, fromNode.y + 1)!!)
         }
 
         for (n in neighbours) {

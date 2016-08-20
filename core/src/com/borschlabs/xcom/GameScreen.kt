@@ -52,7 +52,8 @@ class GameScreen : Screen {
         val cameraSystem = CameraSystem()
         engine.addSystem(cameraSystem)
         engine.addSystem(RenderingSystem(cameraSystem.camera, tiledMap))
-        engine.addSystem(CoreSystem(field))
+        val coreSystem = CoreSystem(field)
+        engine.addSystem(coreSystem)
 
         Gdx.input.inputProcessor = cameraSystem.inputProcessor
 
@@ -61,6 +62,8 @@ class GameScreen : Screen {
         engine.addEntity(player)
 
         resize(Gdx.graphics.width, Gdx.graphics.height)
+
+        coreSystem.startPlayerTurn()
     }
 
     private fun initGameController() {

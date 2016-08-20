@@ -1,6 +1,9 @@
 package com.borschlabs.xcom.systems
 
-import com.badlogic.ashley.core.*
+import com.badlogic.ashley.core.Engine
+import com.badlogic.ashley.core.Entity
+import com.badlogic.ashley.core.EntitySystem
+import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.utils.ImmutableArray
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -13,6 +16,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.utils.Array
 import com.borschlabs.xcom.components.GameUnitComponent
+import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TextureComponent
 import com.borschlabs.xcom.components.TransformComponent
 import com.borschlabs.xcom.renderer.draw
@@ -27,6 +31,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
     private val cellSize = (tiledMap.layers[0] as TiledMapTileLayer).tileWidth
 
     private val TURN_AREA_COLOR = Color(0f, 0f, 1f, 0.2f)
+    private val ROUTE_COLOR = Color(0f, 1f, 1f, 0.6f)
 
     private val batch: SpriteBatch = SpriteBatch()
 
@@ -34,19 +39,20 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
 
     private val tiledMapRenderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
 
-    private var objects: ImmutableArray<Entity> = ImmutableArray(Array())
+    private var visibleObjects: ImmutableArray<Entity> = ImmutableArray(Array())
     private var units: ImmutableArray<Entity> = ImmutableArray(Array())
-
-    private val transformM: ComponentMapper<TransformComponent> = ComponentMapper.getFor(TransformComponent::class.java)
-    private val textureM: ComponentMapper<TextureComponent> = ComponentMapper.getFor(TextureComponent::class.java)
-    private val unitM: ComponentMapper<GameUnitComponent> = ComponentMapper.getFor(GameUnitComponent::class.java)
+    private var routes: ImmutableArray<Entity> = ImmutableArray(Array())
 
     override fun addedToEngine(engine: Engine) {
-        objects = engine.getEntitiesFor(Family.all(TransformComponent::class.java, TextureComponent::class.java).get())
+        visibleObjects = engine.getEntitiesFor(Family.all(TextureComponent::class.java, TransformComponent::class.java).get())
         units = engine.getEntitiesFor(Family.all(GameUnitComponent::class.java).get())
+        routes = engine.getEntitiesFor(Family.all(RouteComponent::class.java).get())
     }
 
     override fun removedFromEngine(engine: Engine) {
+        batch.dispose()
+        debugShapeRenderer.dispose()
+        tiledMapRenderer.dispose()
     }
 
     override fun update(deltaTime: Float) {
@@ -57,26 +63,56 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap) : 
 
         debugShapeRenderer.projectionMatrix = camera.combined
 
-        enableBlending()
-        for (e in units) {
-            val unit = unitM.get(e)
-            if (unit.isTurnAreaVisible) {
-                drawTurnArea(unit.turnArea)
-            }
-        }
-
-        disableBlending()
+        drawTurnAreas()
 
         batch.projectionMatrix = camera.combined
         batch.begin()
 
-        for (obj in objects) {
-            val transform = transformM.get(obj)
-            val texture = textureM.get(obj)
-            batch.draw(texture.region, transform.pos.x, transform.pos.y)
-        }
+        drawVisibleObjects()
 
         batch.end()
+
+        drawRoutes()
+    }
+
+    private fun drawVisibleObjects() {
+        disableBlending()
+
+        for (obj in visibleObjects) {
+            val transform = Mappers.TRANSFORM.get(obj)
+            val texture = Mappers.TEXTURE.get(obj)
+            batch.draw(texture.region, transform.pos.x, transform.pos.y)
+        }
+    }
+
+    private fun drawTurnAreas() {
+        enableBlending()
+        for (e in units) {
+            val unit = Mappers.GAME_UNIT.get(e)
+            if (unit.isTurnAreaVisible) {
+                drawTurnArea(unit.turnArea)
+            }
+        }
+    }
+
+    private fun drawRoutes() {
+        enableBlending()
+        debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        debugShapeRenderer.color = ROUTE_COLOR
+        for (r in routes) {
+            val routeComp = Mappers.ROUTE.get(r)
+            val from = routeComp.fromCell
+            val to = routeComp.toCell
+            if (from != null && to != null) {
+                debugShapeRenderer.line(
+                        from.x * cellSize + cellSize / 2.0f,
+                        from.y * cellSize + cellSize / 2.0f,
+                        to.x * cellSize + cellSize / 2.0f,
+                        to.y * cellSize + cellSize / 2.0f)
+            }
+        }
+
+        debugShapeRenderer.end()
     }
 
     fun resize(width: Int, height: Int) {

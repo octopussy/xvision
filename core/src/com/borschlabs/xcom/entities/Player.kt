@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.borschlabs.xcom.components.GameUnitComponent
+import com.borschlabs.xcom.components.PlayerComponent
 import com.borschlabs.xcom.components.TextureComponent
 import com.borschlabs.xcom.components.TransformComponent
 import com.borschlabs.xcom.world.Field
@@ -23,10 +24,13 @@ class Player(val field: Field) : Entity() {
 
         val trans = TransformComponent()
         val texture = TextureComponent()
+        val playerComp = PlayerComponent()
+
         unit = GameUnitComponent(field)
         texture.region = TextureRegion(playerTexture)
         add(trans)
         add(texture)
+        add(playerComp)
         add(unit)
     }
 
