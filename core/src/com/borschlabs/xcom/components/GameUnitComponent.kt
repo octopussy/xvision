@@ -36,6 +36,9 @@ class GameUnitComponent(val field: Field) : TransformComponent() {
         movingRoute = route
         state = State.MOVING
         cell = route.cells.last()
+
+        actionPoints -= route.cells.size - 1
+        if (actionPoints < 0 ) actionPoints = 0
     }
 
     fun stepMovement(deltaTime: Float, speed: Float) {
@@ -49,6 +52,7 @@ class GameUnitComponent(val field: Field) : TransformComponent() {
 
         if (indexA < 0 || indexA >= cells.size || indexB < 0 || indexB >= cells.size) {
             state = State.IDLE
+            turnArea.calculateArea(cell!!, actionPoints)
         } else {
             val cellA = cells[indexA]
             val cellB = cells[indexB]

@@ -54,9 +54,11 @@ class CoreSystem(val field: Field) : EntitySystem() {
         }
     }
 
+    fun getPlayer():Entity? = if (players.size() > 0) players.first() else null
+
     fun startPlayerTurn() {
         getPlayer()?.let {
-            Mappers.GAME_UNIT.get(it).startTurn(20)
+            Mappers.GAME_UNIT.get(it).startTurn(150)
             state = CoreState.WAIT_FOR_PLAYER_TURN
         }
     }
@@ -104,8 +106,6 @@ class CoreSystem(val field: Field) : EntitySystem() {
             routeComponent.route = Route(unitComponent.turnArea.getRoute(sourceCell, targetCell))
         }
     }
-
-    private fun getPlayer():Entity? = if (players.size() > 0) players.first() else null
 
     companion object {
         private val TAG = "CoreSystem"

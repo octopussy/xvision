@@ -385,9 +385,9 @@ public class NMGame extends ApplicationAdapter {
 				walls.add(new Poly.Wall(lt, lb));*/
 				List<Poly.Wall> cellGeometry = f.getCellGeometry(c, CELL_SIZE);
 				for (Poly.Wall w : cellGeometry) {
-					if (GeomUtils.wallFrontFacing(player, w)) {
+					/*if (GeomUtils.wallFrontFacing(player, w)) {
 						walls.add(w);
-					}
+					}*/
 				}
 				//walls.addAll(cellGeometry);
 			}

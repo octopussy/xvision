@@ -51,7 +51,7 @@ class GameScreen : Screen {
         engine = PooledEngine()
         val cameraSystem = CameraSystem()
         engine.addSystem(cameraSystem)
-        engine.addSystem(RenderingSystem(cameraSystem.camera, tiledMap))
+        engine.addSystem(RenderingSystem(cameraSystem.camera, tiledMap, field))
         val coreSystem = CoreSystem(field)
         engine.addSystem(coreSystem)
 
