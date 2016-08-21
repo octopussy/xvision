@@ -15,6 +15,9 @@ public class VisibleMapBuilder {
 
    private final ShapeRenderer sr;
 
+   private final Vector2 tmpV1 = new Vector2();
+   private final Vector2 tmpV2 = new Vector2();
+
    public VisibleMapBuilder(ShapeRenderer sr) {
       this.sr = sr;
    }
@@ -32,19 +35,19 @@ public class VisibleMapBuilder {
       Collections.sort(corners, new Comparator<Vector2>() {
          @Override
          public int compare(Vector2 l, Vector2 r) {
-            Vector2 ll = new Vector2(l);
-            ll.sub(center);
+            tmpV1.set(l);
+            tmpV1.sub(center);
 
-            Vector2 rr = new Vector2(r);
-            rr.sub(center);
-            float a1 = ll.angleRad(Vector2.X);
-            float a2 = rr.angleRad(Vector2.X);
+            tmpV2.set(r);
+            tmpV2.sub(center);
+            float a1 = tmpV1.angleRad(Vector2.X);
+            float a2 = tmpV2.angleRad(Vector2.X);
             if (a1 == a2) return 0;
             return a1 > a2 ? 1 : -1;
          }
       });
 
-      sr.begin(ShapeRenderer.ShapeType.Line);
+      //sr.begin(ShapeRenderer.ShapeType.Line);
 
       Vector2 prevCorner = new Vector2(Float.MAX_VALUE, Float.MAX_VALUE);
 
@@ -69,14 +72,12 @@ public class VisibleMapBuilder {
          // sr.line(center, corner);
          boolean isInvisibleCorner = false;
          for (Poly.Wall w : inputGeometry) {
-            Vector2 out = new Vector2();
-            Vector2 wallDir = new Vector2(w.corners[1].x - w.corners[0].x, w.corners[1].y - w.corners[0].y);
-            wallDir.nor().scl(0.1f);
-            wallDir.set(0, 0);
-            if (Intersector.intersectSegments(center, farTracePoint, w.corners[0].cpy().sub(wallDir),
-               w.corners[1].cpy().add(wallDir), out)) {
-               float dist = Vector2.len2(out.x - center.x, out.y - center.y);
-               boolean sameCorner = corner.epsilonEquals(out, EPSILON);
+            //Vector2 wallDir = new Vector2(w.corners[1].x - w.corners[0].x, w.corners[1].y - w.corners[0].y);
+            //wallDir.nor().scl(0.1f);
+            if (Intersector.intersectSegments(center, farTracePoint, w.corners[0].cpy(),
+               w.corners[1].cpy(), tmpV1)) {
+               float dist = Vector2.len2(tmpV1.x - center.x, tmpV1.y - center.y);
+               boolean sameCorner = corner.epsilonEquals(tmpV1, EPSILON);
                if (dist < distanceToCorner2 && !sameCorner) {
                   isInvisibleCorner = true;
                	//sr.setColor(Color.MAGENTA);
@@ -156,7 +157,7 @@ public class VisibleMapBuilder {
          }
       }
 
-      sr.end();
+      //sr.end();
 
       if (!outputPoints.isEmpty()) {
          outputPoints.add(new Vector2(outputPoints.get(0)));
