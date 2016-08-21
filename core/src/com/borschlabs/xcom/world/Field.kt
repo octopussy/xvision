@@ -15,32 +15,32 @@ import com.borschlabs.xcom.geometry.Poly
  * @author octopussy
  */
 
-class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
+class Field(tiledMap: TiledMap) : IndexedGraph<FieldCell> {
 
-    private var cells:List<DefaultCell> = mutableListOf()
+    private var cells: List<DefaultCell> = mutableListOf()
     private var collisionLayer: TiledMapTileLayer
 
-    val width:Int get() = collisionLayer.width
-    val height:Int get() = collisionLayer.height
+    val width: Int get() = collisionLayer.width
+    val height: Int get() = collisionLayer.height
 
-    val cellSize:Float
-
-    val obstacles:MutableList<FieldCell> = mutableListOf()
+    val obstacles: MutableList<FieldCell> = mutableListOf()
 
     init {
         collisionLayer = tiledMap.layers.get("collision") as TiledMapTileLayer
-        cellSize = collisionLayer.tileWidth
         createCells()
     }
 
     fun getCell(x: Int, y: Int): FieldCell? {
         val index = y * width + x
-        if (index < 0 || index >= width*height){
+        if (index < 0 || index >= width * height) {
             return null
         }
 
         return cells[index]
     }
+
+    fun getCellAtWorldPoint(x: Float, y: Float): FieldCell?
+            = getCell(Math.floor(x.toDouble()).toInt(), Math.floor(y.toDouble()).toInt())
 
     override fun getConnections(fromNode: FieldCell): Array<Connection<FieldCell>> {
         return fromNode.connections
@@ -57,7 +57,7 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
         val bottomY = center.y - maxDistance
 
         for (o in obstacles) {
-            if (o.posX + o.size < leftX || o.posY > topY  || o.posX > rightX  || o.posY + o.size < bottomY)
+            if (o.x + 1.0f < leftX || o.y > topY || o.x > rightX || o.y + 1.0f < bottomY)
                 continue
 
             o.getFacingWalls(center, walls)
@@ -115,30 +115,28 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
 
         override val connections: Array<Connection<FieldCell>> = Array()
 
-        override val size: Float by lazy { field.cellSize }
-
-        override val posX: Float by lazy { x * size }
-
-        override val posY: Float by lazy { y * size }
-
-        private val walls:MutableList<Poly.Wall> = mutableListOf()
+        private val edges: MutableList<Poly.Wall> = mutableListOf()
 
         val neighbours = IntMap<FieldCell>()
 
         init {
+            val posX = x.toFloat()
+            val posY = y.toFloat()
+            val size = 1.0f
+
             val bl = Vector2(posX, posY)
             val tl = Vector2(posX, posY + size)
             val tr = Vector2(posX + size, posY + size)
             val br = Vector2(posX + size, posY)
-            walls.add(Poly.Wall(bl, tl)) // left
-            walls.add(Poly.Wall(tl, tr)) // top
-            walls.add(Poly.Wall(tr, br)) // right
-            walls.add(Poly.Wall(br, bl)) // bottom
+            edges.add(Poly.Wall(bl, tl)) // left
+            edges.add(Poly.Wall(tl, tr)) // top
+            edges.add(Poly.Wall(tr, br)) // right
+            edges.add(Poly.Wall(br, bl)) // bottom
         }
 
         override fun getNeighbour(n: Int): FieldCell? = neighbours.get(n)
 
-        override fun getFacingWalls(center: Vector3, outWalls:MutableList<Poly.Wall>) {
+        override fun getFacingWalls(center: Vector3, outWalls: MutableList<Poly.Wall>) {
             val checkIfObstacle = fun(n: Int): Boolean {
                 val c = getNeighbour(n)
                 if (c != null) {
@@ -148,20 +146,20 @@ class Field(tiledMap:TiledMap) : IndexedGraph<FieldCell> {
                 }
             }
 
-            if (walls[0].corners[0].x > center.x && !checkIfObstacle(FieldCell.LEFT_NEIGHBOUR)) { // check left facing
-                outWalls.add(walls[0])
+            if (edges[0].corners[0].x > center.x && !checkIfObstacle(FieldCell.LEFT_NEIGHBOUR)) { // check left facing
+                outWalls.add(edges[0])
             }
 
-            if (walls[1].corners[0].y < center.y && !checkIfObstacle(FieldCell.TOP_NEIGHBOUR)) { // check top facing
-                outWalls.add(walls[1])
+            if (edges[1].corners[0].y < center.y && !checkIfObstacle(FieldCell.TOP_NEIGHBOUR)) { // check top facing
+                outWalls.add(edges[1])
             }
 
-            if (walls[2].corners[0].x < center.x && !checkIfObstacle(FieldCell.RIGHT_NEIGHBOUR)) { // check right facing
-                outWalls.add(walls[2])
+            if (edges[2].corners[0].x < center.x && !checkIfObstacle(FieldCell.RIGHT_NEIGHBOUR)) { // check right facing
+                outWalls.add(edges[2])
             }
 
-            if (walls[3].corners[0].y > center.y && !checkIfObstacle(FieldCell.BOTTOM_NEIGHBOUR)) { // check bottom facing
-                outWalls.add(walls[3])
+            if (edges[3].corners[0].y > center.y && !checkIfObstacle(FieldCell.BOTTOM_NEIGHBOUR)) { // check bottom facing
+                outWalls.add(edges[3])
             }
 
         }

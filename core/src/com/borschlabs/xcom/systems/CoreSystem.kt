@@ -43,8 +43,8 @@ class CoreSystem(val field: Field) : EntitySystem() {
                     val cell = unitComponent.cell
 
                     if (cell != null) {
-                        transComponent.pos.x = cell.x * field.cellSize
-                        transComponent.pos.y = cell.y * field.cellSize
+                        transComponent.pos.x = cell.x.toFloat()
+                        transComponent.pos.y = cell.y.toFloat()
                     }
                 }
                 GameUnitComponent.Companion.State.MOVING -> {
@@ -64,17 +64,14 @@ class CoreSystem(val field: Field) : EntitySystem() {
     }
 
     fun handleTap(x: Float, y: Float) {
-        val fx = Math.floor(x / field.cellSize.toDouble())
-        val fy = Math.floor(y / field.cellSize.toDouble())
-
-        val cell = field.getCell(fx.toInt(), fy.toInt())
+        val cell = field.getCellAtWorldPoint(x, y) ?: return
 
         getPlayer()?.let {
             val unitC = Mappers.GAME_UNIT.get(it)
             when (unitC.state) {
                 GameUnitComponent.Companion.State.IDLE -> {
                     val isInTurnArea = unitC.turnArea.reachableCells.contains(cell)
-                    if (cell != null && isInTurnArea) {
+                    if (isInTurnArea) {
                         setRouteToOrGo(it, cell)
                     }
                 }

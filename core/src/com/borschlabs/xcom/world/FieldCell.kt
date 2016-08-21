@@ -12,9 +12,6 @@ import com.borschlabs.xcom.geometry.Poly
 interface FieldCell {
     val x: Int
     val y: Int
-    val size: Float
-    val posX: Float
-    val posY: Float
 
     val isObstacle: Boolean
 

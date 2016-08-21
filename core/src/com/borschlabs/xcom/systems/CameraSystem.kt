@@ -10,13 +10,16 @@ import com.badlogic.gdx.input.GestureDetector
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
+import com.borschlabs.xcom.MAX_ZOOM
+import com.borschlabs.xcom.MIN_ZOOM
+import com.borschlabs.xcom.ZOOM_SPEED
 
 /**
  * @author octopussy
  */
 
 class CameraSystem() : EntitySystem() {
-    val camera: OrthographicCamera = OrthographicCamera(1000.0f, 1000.0f)
+    val camera: OrthographicCamera = OrthographicCamera()
 
     val inputProcessor: InputController = InputController(camera, { x, y ->
         engine.getSystem(CoreSystem::class.java).handleTap(x, y)
@@ -120,13 +123,6 @@ class CameraSystem() : EntitySystem() {
 
                 internal val TYPE_ZOOM = 1
             }
-        }
-
-        companion object {
-
-            private val MIN_ZOOM = 0.5f
-            private val MAX_ZOOM = 1.5f
-            private val ZOOM_SPEED = 1.0f
         }
     }
 }

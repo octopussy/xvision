@@ -12,10 +12,12 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import com.borschlabs.xcom.PIXELS_TO_METRES
+import com.borschlabs.xcom.VIEWPORT_SIZE_IN_METRES
 import com.borschlabs.xcom.components.GameUnitComponent
 import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TextureComponent
@@ -33,8 +35,6 @@ import java.util.*
  */
 
 class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, val field: Field) : EntitySystem() {
-
-    private val cellSize = (tiledMap.layers[0] as TiledMapTileLayer).tileWidth
 
     private val TURN_AREA_COLOR = Color(0f, 0f, 1f, 0.2f)
     private val ROUTE_COLOR = Color(0f, 1f, 1f, 0.6f)
@@ -58,7 +58,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
 
     private val batch: SpriteBatch = SpriteBatch()
 
-    private val tiledMapRenderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
+    private val tiledMapRenderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, PIXELS_TO_METRES, batch)
 
     private var visibleObjects: ImmutableArray<Entity> = ImmutableArray(Array())
     private var units: ImmutableArray<Entity> = ImmutableArray(Array())
@@ -127,9 +127,20 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         disableBlending()
 
         for (obj in visibleObjects) {
-            val transform = Mappers.TRANSFORM.get(obj)
-            val texture = Mappers.TEXTURE.get(obj)
-            batch.draw(texture.region, transform.pos.x, transform.pos.y)
+            val t = Mappers.TRANSFORM.get(obj)
+            val tex = Mappers.TEXTURE.get(obj)
+
+            val width = tex.region!!.regionWidth.toFloat()
+            val height = tex.region!!.regionHeight.toFloat()
+            val originX = width * 0.5f
+            val originY = height * 0.5f
+
+            batch.draw(tex.region,
+                    t.pos.x - originX + 0.5f, t.pos.y - originY + 0.5f,
+                    originX, originY,
+                    width, height,
+                    t.scale.x * PIXELS_TO_METRES, t.scale.y * PIXELS_TO_METRES,
+                    MathUtils.radiansToDegrees * t.rotation)
         }
     }
 
@@ -166,33 +177,32 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     }
 
     fun resize(width: Int, height: Int) {
-        camera.setToOrtho(false, width.toFloat(), height.toFloat())
+        val cameraPos = camera.position.cpy()
+
+        val r = width / height.toFloat()
+        camera.setToOrtho(false, VIEWPORT_SIZE_IN_METRES.toFloat() * r, VIEWPORT_SIZE_IN_METRES.toFloat())
         createVisMapFB(height, width)
+
+        camera.position.set(cameraPos)
+        camera.update()
     }
 
     private fun createVisMapFB(height: Int, width: Int) {
         visMapFB?.dispose()
         visMapFB = FrameBuffer(Pixmap.Format.RGBA8888, width, height, false)
-        visMapFB?.colorBufferTexture?.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+        visMapFB?.colorBufferTexture?.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
     }
 
     private fun drawTurnArea(turnArea: GameUnitTurnArea) {
         turnArea.reachableCells.forEach { fillCell(it.x, it.y, TURN_AREA_COLOR) }
     }
 
-    private fun fillCell(cellX: Int, cellY: Int, color: Color) {
-        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) {
-            rect(cellX.toFloat() * cellSize, cellY.toFloat() * cellSize, cellSize, cellSize)
-        }
-    }
+    private fun fillCell(cellX: Int, cellY: Int, color: Color) =
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) { rect(cellX.toFloat(), cellY.toFloat(), 1f, 1f) }
 
-    private fun drawRouteSeg(from: FieldCell, to: FieldCell) {
-        debugShapeRenderer.line(
-                from.x * cellSize + cellSize / 2.0f,
-                from.y * cellSize + cellSize / 2.0f,
-                to.x * cellSize + cellSize / 2.0f,
-                to.y * cellSize + cellSize / 2.0f)
-    }
+
+    private fun drawRouteSeg(from: FieldCell, to: FieldCell) =
+        debugShapeRenderer.line( from.x + 0.5f, from.y + 0.5f, to.x + 0.5f, to.y + 0.5f)
 
     private fun enableBlending() {
         Gdx.gl.glEnable(GL20.GL_BLEND)
@@ -208,8 +218,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         val player = engine.getSystem(CoreSystem::class.java).getPlayer() ?: return
         val playerPosition = Mappers.GAME_UNIT.get(player).pos.cpy()
 
-        playerPosition.x += cellSize / 2.0f
-        playerPosition.y += cellSize / 2.0f
+        playerPosition.x += 0.5f
+        playerPosition.y += 0.5f
 
         val playerPos2 = Vector2(playerPosition.x, playerPosition.y)
 
@@ -245,11 +255,11 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             visMapVertices = FloatArray(verticesCount * 2)
         }
 
-     //   debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-     //   debugShapeRenderer.color = Color.FIREBRICK
+        //   debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        //   debugShapeRenderer.color = Color.FIREBRICK
 
         for (i in outputPoints.indices) {
-           // val prev = if (i > 0) outputPoints[i - 1] else null
+            // val prev = if (i > 0) outputPoints[i - 1] else null
             val next = outputPoints[i]
             visMapVertices[i * 2] = next.x
             visMapVertices[i * 2 + 1] = next.y
@@ -267,7 +277,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             //debugShapeRenderer.line(playerPos2, next)
         }
 
-       // debugShapeRenderer.end()
+        // debugShapeRenderer.end()
 
         val r: Random = Random()
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)

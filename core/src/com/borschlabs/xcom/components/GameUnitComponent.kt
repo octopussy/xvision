@@ -58,8 +58,8 @@ class GameUnitComponent(val field: Field) : TransformComponent() {
             val cellB = cells[indexB]
             val f = passed - Math.floor(passed)
 
-            pos.x = ((cellB.x - cellA.x) * f + cellA.x).toFloat() * field.cellSize
-            pos.y = ((cellB.y - cellA.y) * f + cellA.y).toFloat() * field.cellSize
+            pos.x = ((cellB.x - cellA.x) * f + cellA.x).toFloat()
+            pos.y = ((cellB.y - cellA.y) * f + cellA.y).toFloat()
         }
     }
 
