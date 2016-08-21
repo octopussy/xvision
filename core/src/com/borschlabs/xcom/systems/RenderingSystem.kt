@@ -175,7 +175,7 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     private fun createVisMapFB(height: Int, width: Int) {
         visMapFB?.dispose()
         visMapFB = FrameBuffer(Pixmap.Format.RGBA8888, width, height, false)
-        visMapFB?.colorBufferTexture?.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest)
+        visMapFB?.colorBufferTexture?.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
     }
 
     private fun drawTurnArea(turnArea: GameUnitTurnArea) {
@@ -247,8 +247,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             visMapVertices = FloatArray(verticesCount * 2)
         }
 
-        debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        debugShapeRenderer.color = Color.FIREBRICK
+        //debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        //debugShapeRenderer.color = Color.FIREBRICK
 
         for (i in outputPoints.indices) {
             val prev = if (i > 0) outputPoints[i - 1] else null
@@ -262,27 +262,28 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
                 if (!GeomUtils.isOnLine(toWallDir, wallDir)) {
                     //visibleWalls.add(Poly.Wall(prev, next))
                 }
-                debugShapeRenderer.line(playerPos2, prev)
+                //debugShapeRenderer.line(playerPos2, prev)
             }
 
 
-            debugShapeRenderer.line(playerPos2, next)
+            //debugShapeRenderer.line(playerPos2, next)
         }
 
-        debugShapeRenderer.end()
+        //debugShapeRenderer.end()
 
-        val r: Random = Random()
+        /*val r: Random = Random()
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         enableBlending()
         walls.forEach {
             debugShapeRenderer.color = Color.BLUE//Color(Color.rgb888(r.nextFloat(), r.nextFloat(), r.nextFloat()))
             debugShapeRenderer.line(it.corners[0], it.corners[1])
         }
-        debugShapeRenderer.end()
+        debugShapeRenderer.end()*/
+
         visMapMesh.setVertices(visMapVertices)
 
         visMapFB!!.begin()
-        Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 0.0f)
+        Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         visMapShaderProgram.begin()
         visMapShaderProgram.setUniformf("u_centerPoint", playerPos2)
