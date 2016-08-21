@@ -102,11 +102,10 @@ public class VisibleMapBuilder {
             float side = 0;
             for (int i = 0; i < neighbours.size(); ++i) {
                Vector2 n = neighbours.get(i);
-               Vector2 v = new Vector2(n);
-               v.sub(corner).nor();
+               tmpV1.set(n.x - corner.x, n.y - corner.y).nor();
                //sr.setColor(Color.CYAN);
                //sr.line(corner.pos, new Vector2(corner.pos).add(new Vector2(v).scl(10)));
-               float s = dirToCorner.angleRad(v);
+               float s = dirToCorner.angleRad(tmpV1);
 
                if (i > 0 && Math.signum(s) != Math.signum(side)) {
                   traceFurther = false;
