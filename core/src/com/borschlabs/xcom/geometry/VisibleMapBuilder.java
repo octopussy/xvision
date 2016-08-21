@@ -74,8 +74,7 @@ public class VisibleMapBuilder {
          for (Poly.Wall w : inputGeometry) {
             //Vector2 wallDir = new Vector2(w.corners[1].x - w.corners[0].x, w.corners[1].y - w.corners[0].y);
             //wallDir.nor().scl(0.1f);
-            if (Intersector.intersectSegments(center, farTracePoint, w.corners[0].cpy(),
-               w.corners[1].cpy(), tmpV1)) {
+            if (Intersector.intersectSegments(center, farTracePoint, w.corners[0], w.corners[1], tmpV1)) {
                float dist = Vector2.len2(tmpV1.x - center.x, tmpV1.y - center.y);
                boolean sameCorner = corner.epsilonEquals(tmpV1, EPSILON);
                if (dist < distanceToCorner2 && !sameCorner) {
@@ -125,12 +124,16 @@ public class VisibleMapBuilder {
                float distance = Float.MAX_VALUE;
                Vector2 nearest = null;
                for (Poly.Wall w : inputGeometry) {
-                  Vector2 out = new Vector2();
-                  if (Intersector.intersectSegments(center, farTracePoint, w.corners[0], w.corners[1], out)) {
-                     float dist = Vector2.len2(out.x - corner.x, out.y - corner.y);
-                     if (dist < distance && !out.epsilonEquals(corner, EPSILON)) {
+
+                  if (Intersector.intersectSegments(center, farTracePoint, w.corners[0], w.corners[1], tmpV1)) {
+                     float dist = Vector2.len2(tmpV1.x - corner.x, tmpV1.y - corner.y);
+                     if (dist < distance && !tmpV1.epsilonEquals(corner, EPSILON)) {
                         distance = dist;
-                        nearest = out;
+                        if (nearest == null) {
+                           nearest = new Vector2(tmpV1);
+                        } else {
+                           nearest.set(tmpV1);
+                        }
                      }
                   }
                }
