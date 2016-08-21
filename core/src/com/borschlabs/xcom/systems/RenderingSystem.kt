@@ -21,7 +21,6 @@ import com.borschlabs.xcom.components.RouteComponent
 import com.borschlabs.xcom.components.TextureComponent
 import com.borschlabs.xcom.components.TransformComponent
 import com.borschlabs.xcom.draw
-import com.borschlabs.xcom.geometry.GeomUtils
 import com.borschlabs.xcom.geometry.Poly
 import com.borschlabs.xcom.geometry.VisibleMapBuilder
 import com.borschlabs.xcom.world.Field
@@ -94,8 +93,6 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     override fun update(deltaTime: Float) {
         camera.update()
 
-        drawVisMap()
-
         // set vis map
         mainShaderProgram.begin()
 
@@ -123,6 +120,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         batch.end()
 
         drawRoutes()
+
+        drawVisMap()
     }
 
     private fun drawVisibleObjects() {
@@ -247,38 +246,38 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             visMapVertices = FloatArray(verticesCount * 2)
         }
 
-        //debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        //debugShapeRenderer.color = Color.FIREBRICK
+        debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        debugShapeRenderer.color = Color.FIREBRICK
 
         for (i in outputPoints.indices) {
-            val prev = if (i > 0) outputPoints[i - 1] else null
+           // val prev = if (i > 0) outputPoints[i - 1] else null
             val next = outputPoints[i]
             visMapVertices[i * 2] = next.x
             visMapVertices[i * 2 + 1] = next.y
 
-            if (prev != null) {
+            /*if (prev != null) {
                 val toWallDir = playerPos2.cpy().sub(prev)
                 val wallDir = next.cpy().sub(prev)
                 if (!GeomUtils.isOnLine(toWallDir, wallDir)) {
                     //visibleWalls.add(Poly.Wall(prev, next))
                 }
-                //debugShapeRenderer.line(playerPos2, prev)
-            }
+                debugShapeRenderer.line(playerPos2, prev)
+            }*/
 
 
-            //debugShapeRenderer.line(playerPos2, next)
+            debugShapeRenderer.line(playerPos2, next)
         }
 
-        //debugShapeRenderer.end()
+        debugShapeRenderer.end()
 
-        /*val r: Random = Random()
+        val r: Random = Random()
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         enableBlending()
         walls.forEach {
             debugShapeRenderer.color = Color.BLUE//Color(Color.rgb888(r.nextFloat(), r.nextFloat(), r.nextFloat()))
             debugShapeRenderer.line(it.corners[0], it.corners[1])
         }
-        debugShapeRenderer.end()*/
+        debugShapeRenderer.end()
 
         visMapMesh.setVertices(visMapVertices)
 
