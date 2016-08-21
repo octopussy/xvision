@@ -93,7 +93,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
     override fun update(deltaTime: Float) {
         camera.update()
 
-        // set vis map
+        drawVisMap()
+
         mainShaderProgram.begin()
 
         Gdx.graphics.gL20.glActiveTexture(GL20.GL_TEXTURE1)
@@ -120,8 +121,6 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
         batch.end()
 
         drawRoutes()
-
-        drawVisMap()
     }
 
     private fun drawVisibleObjects() {
@@ -246,8 +245,8 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             visMapVertices = FloatArray(verticesCount * 2)
         }
 
-        debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        debugShapeRenderer.color = Color.FIREBRICK
+     //   debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+     //   debugShapeRenderer.color = Color.FIREBRICK
 
         for (i in outputPoints.indices) {
            // val prev = if (i > 0) outputPoints[i - 1] else null
@@ -265,10 +264,10 @@ class RenderingSystem(val camera: OrthographicCamera, val tiledMap: TiledMap, va
             }*/
 
 
-            debugShapeRenderer.line(playerPos2, next)
+            //debugShapeRenderer.line(playerPos2, next)
         }
 
-        debugShapeRenderer.end()
+       // debugShapeRenderer.end()
 
         val r: Random = Random()
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Line)

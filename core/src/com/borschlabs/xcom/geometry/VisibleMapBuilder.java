@@ -47,7 +47,6 @@ public class VisibleMapBuilder {
       sr.begin(ShapeRenderer.ShapeType.Line);
 
       Vector2 prevCorner = new Vector2(Float.MAX_VALUE, Float.MAX_VALUE);
-      float prevCornerAngle = 0.0f;
 
       Vector2 dirToCorner = new Vector2();
       Vector2 farTracePoint = new Vector2();
@@ -62,14 +61,6 @@ public class VisibleMapBuilder {
          final float distanceToCorner2 = Vector2.len2(corner.x - center.x, corner.y - center.y);
          dirToCorner.set(corner);
          dirToCorner.sub(center).nor();
-
-         float cornerAngle = dirToCorner.angleRad(Vector2.X);
-
-         if (Math.abs(cornerAngle - prevCornerAngle) <= 0.0001f) {
-            continue;
-         }
-
-         prevCornerAngle = cornerAngle;
 
          farTracePoint.set(dirToCorner);
          farTracePoint.scl(10000f).add(center);
