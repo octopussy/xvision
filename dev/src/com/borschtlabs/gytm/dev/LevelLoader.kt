@@ -1,5 +1,6 @@
 package com.borschtlabs.gytm.dev
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 
 /**
@@ -16,10 +17,21 @@ class LevelLoader(val levelsPath: String) {
         val tileWidth = tiledMap.properties.get("tilewidth") as Int
         val tileHeight = tiledMap.properties.get("tileheight")  as Int
 
-        return Level.create(width, height, tileWidth, tileHeight)
+        val level = Level.createBlank(width, height, tileWidth, tileHeight, tiledMap)
+
+        val groundLayer = tiledMap.layers.get("ground")
+
+        if (groundLayer == null) {
+            val msg = "Level has no 'ground' layer."
+            Gdx.app.error(TAG, msg)
+            throw IllegalArgumentException(msg)
+        }
+
+        return level
     }
 
     private companion object {
+        val TAG: String = "LevelLoader"
         val LEVEL_FILE_EXT = ".tmx"
     }
 }

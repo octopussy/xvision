@@ -1,20 +1,23 @@
 package com.borschtlabs.gytm.dev
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.utils.Disposable
 
 /**
  * @author octopussy
  */
 
-class Level private constructor(val width: Int, val height: Int, val cellSize: Int) {
-    init {
+class Level private constructor(val width: Int, val height: Int, val cellSize: Int, val tiledMap: TiledMap): Disposable {
 
+    override fun dispose() {
+        tiledMap.dispose()
     }
 
     companion object {
         val TAG = "Level"
 
-        fun create(width: Int, height: Int, tileWidth: Int, tileHeight: Int): Level {
+        fun createBlank(width: Int, height: Int, tileWidth: Int, tileHeight: Int, tiledMap: TiledMap): Level {
             if (width <= 0 || height <= 0) {
                 val msg = "Level measures are negative! (w=$width, h=$height)"
                 Gdx.app.error(TAG, msg)
@@ -33,7 +36,7 @@ class Level private constructor(val width: Int, val height: Int, val cellSize: I
                 throw IllegalArgumentException(msg)
             }
 
-            return Level(width, height, tileWidth)
+            return Level(width, height, tileWidth, tiledMap)
         }
     }
 }

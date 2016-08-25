@@ -9,10 +9,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.TiledMapRenderer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
-import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 
 /**
  * @author octopussy
@@ -26,9 +23,10 @@ class DevScreen : ScreenAdapter() {
     private lateinit var guiBatch: Batch
 
     private lateinit var cam: OrthographicCamera
-    private lateinit var tiledMapRenderer: TiledMapRenderer
 
-    private lateinit var tiledMap: TiledMap
+    private lateinit var level: Level
+
+    private lateinit var levelRenderer: LevelRenderer
 
     override fun show() {
         cam = OrthographicCamera()
@@ -43,20 +41,20 @@ class DevScreen : ScreenAdapter() {
         params.textureMagFilter = Texture.TextureFilter.MipMapNearestNearest
         params.textureMinFilter = Texture.TextureFilter.MipMapNearestNearest
 
-        tiledMap = TmxMapLoader().load("maps/test.tmx", params)
-
-        tiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
-
         resize(Gdx.graphics.width, Gdx.graphics.height)
 
-        val level = LevelLoader("maps").load("test")
+        level = LevelLoader("maps").load("test")
+
+        levelRenderer = LevelRenderer(level, batch)
     }
 
     override fun dispose() {
+        levelRenderer.dispose()
+        level.dispose()
         font.dispose()
-        tiledMap.dispose()
         batch.dispose()
         guiBatch.dispose()
+
     }
     override fun resize(width: Int, height: Int) {
         guiCam.setToOrtho(true, width.toFloat(), height.toFloat())
@@ -74,9 +72,7 @@ class DevScreen : ScreenAdapter() {
 
         cam.update()
 
-        //batch.projectionMatrix = cam.combined
-        tiledMapRenderer.setView(cam)
-        tiledMapRenderer.render()
+        levelRenderer.render(cam)
 
         drawUI()
     }
