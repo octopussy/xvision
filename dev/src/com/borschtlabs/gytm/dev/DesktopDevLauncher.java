@@ -6,8 +6,8 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 public class DesktopDevLauncher {
    public static void main(String[] arg) {
       LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-      config.width = 1024;
-      config.height = 768;
+      config.width = 960;
+      config.height = 540;
       config.foregroundFPS = 60;
       config.backgroundFPS = 60;
       config.vSyncEnabled = false;
