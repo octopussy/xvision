@@ -114,6 +114,22 @@ class DevScreen : ScreenAdapter() {
         }
 
         debugSR.end()
+
+        debugSR.begin(ShapeRenderer.ShapeType.Filled)
+        debugSR.projectionMatrix = cam.combined
+
+        drawNavGrid(3, Color(0f, 1f, 0f, 0.5f))
+
+        debugSR.end()
+    }
+
+    private fun drawNavGrid(size:Int, color: Color) {
+        debugSR.color = color
+
+        val grid: NavGrid = level.navGrids.get(size)
+        for ((x, y) in grid.waypoints) {
+            debugSR.circle(x, y, 0.1f, 8)
+        }
     }
 
     private fun drawDebugRect(x: Int, y: Int) {
