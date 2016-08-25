@@ -5,8 +5,10 @@ import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
@@ -30,6 +32,9 @@ class GameScreen : Screen {
     private lateinit var fontTexture: Texture
     private lateinit var font: BitmapFont
     private lateinit var fontShader: ShaderProgram
+
+    private lateinit var guiCam: OrthographicCamera
+    private lateinit var guiBatch: SpriteBatch
 
     override fun show() {
         createFonts()
@@ -61,9 +66,12 @@ class GameScreen : Screen {
         player.setCell(3, 3)
         engine.addEntity(player)
 
-        resize(Gdx.graphics.width, Gdx.graphics.height)
-
         coreSystem.startPlayerTurn()
+
+        guiBatch = SpriteBatch()
+        guiCam = OrthographicCamera()
+
+        resize(Gdx.graphics.width, Gdx.graphics.height)
     }
 
     private fun initGameController() {
@@ -78,6 +86,8 @@ class GameScreen : Screen {
     }
 
     override fun resize(width: Int, height: Int) {
+        guiCam.setToOrtho(false, width.toFloat(), height.toFloat())
+
         engine.getSystem(RenderingSystem::class.java)?.resize(width, height)
        // camera.setToOrtho(false, width.toFloat(), height.toFloat())
        // camera.position.set(world.width / 2.0f, world.height / 2.0f, 0.0f)
@@ -100,6 +110,8 @@ class GameScreen : Screen {
 
         engine.update(delta)
 
+        drawUI()
+
         /*// player
         debugShapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         debugShapeRenderer.color = Color.RED
@@ -116,6 +128,14 @@ class GameScreen : Screen {
    //     worldRenderer.render(delta)
     }
 
+    private fun drawUI() {
+        guiCam.update()
+        guiBatch.projectionMatrix = guiCam.combined
+        guiBatch.begin()
+        font.draw(guiBatch, "${Gdx.graphics.framesPerSecond} fps w: ${Gdx.graphics.width} h: ${Gdx.graphics.height}", 10f, font.lineHeight)
+        guiBatch.end()
+    }
+
     override fun resume() {
     }
 
@@ -125,6 +145,7 @@ class GameScreen : Screen {
     }
 
     private fun createFonts() {
+        //font = BitmapFont()
         fontTexture = Texture(Gdx.files.internal("arial_black.png"))
         fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
         font = BitmapFont(Gdx.files.internal("arial_black.fnt"), TextureRegion(fontTexture), false)

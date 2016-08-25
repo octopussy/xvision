@@ -28,7 +28,6 @@ class GameUnitComponent(val field: Field) : TransformComponent() {
         this.actionPoints = actionPoints
         if (cell != null)
             turnArea.calculateArea(cell!!, actionPoints)
-
     }
 
     fun startMoving(route: Route) {

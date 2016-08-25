@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.EntitySystem
 import com.badlogic.ashley.core.Family
 import com.badlogic.ashley.utils.ImmutableArray
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.Array
 import com.borschlabs.xcom.components.GameUnitComponent
 import com.borschlabs.xcom.components.PlayerComponent
@@ -96,7 +95,6 @@ class CoreSystem(val field: Field) : EntitySystem() {
         if (routeComponent.route.cells.isNotEmpty() && targetCell == routeComponent.route.cells.last()) {
             unitComponent.startMoving(routeComponent.route)
             e.remove(RouteComponent::class.java)
-            Gdx.app.log(TAG, "Start movement to $targetCell")
         }
 
         if (sourceCell != null) {

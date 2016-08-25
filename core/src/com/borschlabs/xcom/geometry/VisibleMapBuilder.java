@@ -10,6 +10,7 @@ import java.util.*;
 /**
  * @author octopussy
  */
+
 public class VisibleMapBuilder {
    private static final float EPSILON = 0.01f;
 

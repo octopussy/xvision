@@ -1,10 +1,11 @@
 buildscript {
-    ext.kotlinVersion = '1.0.3'
+    ext.kotlinVersion = '1.0.4-eap-62'
 
     repositories {
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap/'}
         jcenter()
     }
     dependencies {
@@ -22,7 +23,7 @@ allprojects {
     version = '0.1'
     ext {
         appName = "xcom-game"
-        gdxVersion = '1.9.3'
+        gdxVersion = '1.9.4'
         roboVMVersion = '2.1.0'
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.2'
@@ -34,12 +35,12 @@ allprojects {
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap/'}
     }
 }
 
 project(":desktop") {
     apply plugin: "kotlin"
-
 
     dependencies {
         compile project(":core")
@@ -49,6 +50,18 @@ project(":desktop") {
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
     }
 }
+
+project(":dev") {
+    apply plugin: "kotlin"
+
+    dependencies {
+        compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+    }
+}
+
 
 project(":android") {
     apply plugin: "android"

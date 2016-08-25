@@ -1,10 +1,9 @@
-package com.borschlabs.xcom.desktop;
+package com.borschtlabs.gytm.dev;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.borschlabs.xcom.XcomGame;
 
-public class DesktopLauncher {
+public class DesktopDevLauncher {
    public static void main(String[] arg) {
       LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
       config.width = 1024;
@@ -13,6 +12,6 @@ public class DesktopLauncher {
       config.backgroundFPS = 60;
       config.vSyncEnabled = false;
 
-      new LwjglApplication(new XcomGame(), config);
+      new LwjglApplication(new DevGame(), config);
    }
 }

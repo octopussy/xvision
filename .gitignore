@@ -59,5 +59,7 @@ nb-configuration.xml
 .gradle
 build/
 
+captures/
+
 ## OS Specific
 .DS_Store
