@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Disposable
 
 class LevelRenderer(private val level: Level, batch: Batch): Disposable {
 
-    private val renderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(level.tiledMap, batch)
+    private val renderer: OrthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(level.tiledMap, 1f / level.cellSize, batch)
 
     fun render(cam: OrthographicCamera) {
         renderer.setView(cam)
