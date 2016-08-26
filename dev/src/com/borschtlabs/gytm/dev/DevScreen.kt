@@ -54,6 +54,9 @@ class DevScreen : ScreenAdapter() {
 
         debugSR = ShapeRenderer()
 
+        Gdx.input.inputProcessor = DevInputController(cam)
+
+        cam.position.set(VIEWPORT_WIDTH / 2f, VIEWPORT_WIDTH / 2f - 10, 0f)
         resize(Gdx.graphics.width, Gdx.graphics.height)
     }
 
@@ -71,11 +74,15 @@ class DevScreen : ScreenAdapter() {
         val aspectRatio = height / width.toFloat()
         val w = VIEWPORT_WIDTH.toFloat()
 
+        val pos = cam.position.cpy()
         if (aspectRatio < 1) {
             cam.setToOrtho(false, w, w * aspectRatio)
         } else {
             cam.setToOrtho(false, w / aspectRatio, w)
         }
+
+        cam.position.set(pos)
+        cam.update()
     }
 
     override fun render(delta: Float) {
@@ -118,7 +125,7 @@ class DevScreen : ScreenAdapter() {
         debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
 
-        drawNavGrid(3, Color(0f, 1f, 0f, 0.5f))
+        drawNavGrid(2, Color(0f, 1f, 0f, 0.5f))
 
         debugSR.end()
     }

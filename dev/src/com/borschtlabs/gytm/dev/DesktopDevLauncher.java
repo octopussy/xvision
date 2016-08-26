@@ -10,7 +10,7 @@ public class DesktopDevLauncher {
       config.height = 540;
       config.foregroundFPS = 60;
       config.backgroundFPS = 60;
-      config.vSyncEnabled = false;
+      config.vSyncEnabled = true;
 
       new LwjglApplication(new DevGame(), config);
    }
