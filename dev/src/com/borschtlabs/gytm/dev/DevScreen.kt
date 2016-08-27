@@ -127,30 +127,30 @@ class DevScreen : ScreenAdapter() {
 
         val dist = 30
 
-        debugSR.color = Color(1f, 0f, 0f, 0.5f)
-        drawDebugTurnArea(13, 13, 1, dist)
+       /* debugSR.color = Color(1f, 0f, 0f, 0.5f)
+        drawDebugTurnArea(13, 13, 1, dist)*/
 
         debugSR.color = Color(1f, 1f, 0f, 0.5f)
         drawDebugTurnArea(13, 13, 2, dist)
 
-        debugSR.color = Color(1f, 0f, 1f, 0.5f)
+        /*debugSR.color = Color(1f, 0f, 1f, 0.5f)
         drawDebugTurnArea(13, 13, 3, dist)
 
         debugSR.color = Color(0f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(13, 13, 4, dist)
+        drawDebugTurnArea(13, 13, 4, dist)*/
 
         debugSR.end()
     }
 
-    private val _areas = mutableMapOf<Int, List<Cell>>()
+    private val _areas = mutableMapOf<Int, TurnArea>()
 
     private fun drawDebugTurnArea(x: Int, y: Int, unitSize:Int, maxDistance: Int) {
         val area = _areas.getOrPut(unitSize) {
-            level.getTurnArea(x, y, unitSize, maxDistance)
+            TurnArea.create(level, x, y, unitSize, maxDistance)
         }
 
         val shift = (unitSize - 1) * 0.5f
-        area.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
+        area.cells.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
     }
 
     private fun drawDebugRect(x: Float, y: Float, size: Float = 1f) {
