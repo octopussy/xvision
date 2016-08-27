@@ -45,9 +45,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
 
         fun create(level: Level, startX: Int, startY: Int, unitSize: Int, maxDistance: Int): TurnArea {
 
-            val startCell = level.getCell(startX, startY)
-
-            if (startCell == null || maxDistance <= 0 || unitSize <= 0) {
+            if (maxDistance <= 0 || unitSize <= 0) {
                 return TurnArea(listOf(), level)
             }
 
@@ -58,28 +56,22 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
 
             val centerShift = (unitSize - 1) * 0.5f
 
-            fun addWP(wp: WayPoint, distance: Int) {
-                frontier.add(wp)
-                visited.add(wp)
-                distanceMap[wp] = distance
-            }
-
-            fun extendFrontier(from: WayPoint, x: Int, y: Int, distance: Int) {
+            fun extendFrontier(from: WayPoint?, x: Int, y: Int, distance: Int) {
                 val n = level.getCell(x, y)
                 val alreadyVisited = visited.find { it.cell == n } == null
                 if (n != null && alreadyVisited && !level.checkCellsIfOccupied(unitSize, n.x, n.y)) {
                     val wp = WayPoint(n, visited.size, Vector2(n.x + centerShift, n.y + centerShift))
-                    from.connections.add(DefaultConnection(from, wp))
-                    addWP(wp, distance)
+                    from?.connections?.add(DefaultConnection(from, wp))
+                    frontier.add(wp)
+                    visited.add(wp)
+                    distanceMap[wp] = distance
                 }
             }
 
-            var current = WayPoint(startCell, 0, Vector2(startCell.x + centerShift, startCell.y + centerShift))
-
-            addWP(current, maxDistance)
+            extendFrontier(null, startX, startY, maxDistance)
 
             while (frontier.isNotEmpty()) {
-                current = frontier.removeAt(0)!!
+                val current = frontier.removeAt(0)!!
 
                 val d = (distanceMap[current] ?: 0) - 1
 
