@@ -133,29 +133,29 @@ class DevScreen : ScreenAdapter() {
         val startY = 16
         val endX = 39
         val endY = 19
-        val unitSize = 1
+        val unitSize = 2
 
         debugSR.color = Color(1f, 0f, 1f, 0.5f)
         drawDebugTurnArea(startX, startY, unitSize, dist)
 
         debugSR.end()
 
-        val path = _areas[unitSize]!!.getPath(startX, startY, endX, endY, false)
-        val smoothedPath = _areas[unitSize]!!.getPath(startX, startY, endX, endY, true)
+        val path = _areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2f, false)
+        val smoothedPath = _areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2f, true)
 
         debugSR.begin(ShapeRenderer.ShapeType.Line)
 
         debugSR.color = Color(1f, 0f, 0f, 1f)
-        drawDebugPath(path, 1)
+        drawDebugPath(path)
 
         debugSR.color = Color(0f, 0f, 1f, 1f)
-        drawDebugPath(smoothedPath, 1)
+        drawDebugPath(smoothedPath)
 
         debugSR.end()
 
     }
 
-    private fun drawDebugPath(path: List<TurnArea.WayPoint>, unitSize: Int) {
+    private fun drawDebugPath(path: List<TurnArea.WayPoint>) {
         for (i in 0..path.size - 2) {
             debugSR.line(path[i].center, path[i + 1].center)
         }

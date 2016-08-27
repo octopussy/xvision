@@ -8,10 +8,9 @@ import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 
-class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) : IndexedGraph<TurnArea.WayPoint> {
+class TurnArea private constructor(val waypoints: List<WayPoint>, private val level: Level) : IndexedGraph<TurnArea.WayPoint> {
 
     private val pathFinder = IndexedAStarPathFinder<WayPoint>(this)
-    private val pathSmoother = PathSmoother<WayPoint, Vector2>(level)
 
     class WayPoint(val cell: Level.Cell, val index: Int, val center: Vector2) {
         val x: Int get() = cell.x
@@ -26,7 +25,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
 
     override fun getNodeCount(): Int = waypoints.size
 
-    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int, smooth: Boolean): List<WayPoint> {
+    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int, unitRadius: Float, smooth: Boolean): List<WayPoint> {
         val from = getWayPoint(fromX, formY)
         val to = getWayPoint(toX, toY)
 
@@ -39,6 +38,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
         pathFinder.searchNodePath(from, to, ManhattanDistanceHeuristic(), out)
 
         if (smooth) {
+            val pathSmoother = PathSmoother<WayPoint, Vector2>(MyRayCollisionDetector(level, unitRadius))
             pathSmoother.smoothPath(out)
         }
 
