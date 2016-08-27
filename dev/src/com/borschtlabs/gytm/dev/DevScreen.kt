@@ -125,29 +125,36 @@ class DevScreen : ScreenAdapter() {
         debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
 
+        val dist = 30
+
         debugSR.color = Color(1f, 0f, 0f, 0.5f)
-        drawDebugTurnArea(13, 13, 1, 10)
+        drawDebugTurnArea(13, 13, 1, dist)
 
         debugSR.color = Color(1f, 1f, 0f, 0.5f)
-        drawDebugTurnArea(13, 13, 2, 10)
+        drawDebugTurnArea(13, 13, 2, dist)
 
         debugSR.color = Color(1f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(13, 13, 3, 10)
+        drawDebugTurnArea(13, 13, 3, dist)
 
         debugSR.color = Color(0f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(13, 13, 4, 10)
+        drawDebugTurnArea(13, 13, 4, dist)
 
         debugSR.end()
     }
 
+    private val _areas = mutableMapOf<Int, List<Cell>>()
+
     private fun drawDebugTurnArea(x: Int, y: Int, unitSize:Int, maxDistance: Int) {
-        val area = level.getTurnArea(x, y, unitSize, maxDistance)
+        val area = _areas.getOrPut(unitSize) {
+            level.getTurnArea(x, y, unitSize, maxDistance)
+        }
+
         val shift = (unitSize - 1) * 0.5f
-        area.forEach { drawDebugRect(it.x + shift, it.y + shift) }
+        area.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
     }
 
-    private fun drawDebugRect(x: Float, y: Float) {
-        debugSR.rect(x.toFloat(), y.toFloat(), 1f, 1f)
+    private fun drawDebugRect(x: Float, y: Float, size: Float = 1f) {
+        debugSR.rect(x.toFloat(), y.toFloat(), size, size)
     }
 
     private fun drawUI() {

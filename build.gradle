@@ -60,6 +60,7 @@ project(":android") {
 
     dependencies {
         compile project(":core")
+        compile project(":dev")
         compile fileTree(dir: '../libs', include: '*.jar')
         compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
@@ -137,8 +138,6 @@ project(":dev") {
         compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
-        testCompile "com.nhaarman:mockito-kotlin:0.6.0"
     }
 }
 

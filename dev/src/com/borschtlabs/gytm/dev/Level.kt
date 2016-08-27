@@ -83,20 +83,26 @@ class Level private constructor(val width: Int, val height: Int, val cellSize: I
     }
 
     fun getTurnArea(startX: Int, startY: Int, unitSize: Int, maxDistance: Int): List<Cell> {
-        if (maxDistance <= 0) {
-            return listOf(getCell(startX, startY)!!)
+
+        val startCell = getCell(startX, startY) ?: return listOf()
+
+        if (maxDistance <= 0 || unitSize <= 0) {
+            return listOf(startCell)
         }
 
         val visited = mutableSetOf<Cell>()
         val frontier = mutableListOf<Cell?>()
+        val distanceMap = mutableMapOf<Cell, Int>()
 
-        frontier.add(getCell(startX, startY))
+        frontier.add(startCell)
+        distanceMap.put(startCell, maxDistance)
 
-        fun extendFrontier(x: Int, y: Int) {
+        fun extendFrontier(x: Int, y: Int, distance: Int) {
             val n = getCell(x, y)
-            if (n != null && !visited.contains(n) && !checkCellsUnderWaypoint(unitSize, n.x, n.y)){
+            if (n != null && !visited.contains(n) && !checkCellsUnderWaypoint(unitSize, n.x, n.y)) {
                 frontier.add(n)
                 visited.add(n)
+                distanceMap[n] = distance
             }
         }
 
@@ -104,17 +110,21 @@ class Level private constructor(val width: Int, val height: Int, val cellSize: I
             val current = frontier.removeAt(0)
 
             if (current != null) {
-                // west
-                extendFrontier(current.x - 1, current.y)
+                val d = (distanceMap[current] ?: 0) - 1
 
-                // north
-                extendFrontier(current.x, current.y + 1)
+                if (d >= 0) {
+                    // west
+                    extendFrontier(current.x - 1, current.y, d)
 
-                // east
-                extendFrontier(current.x + 1, current.y)
+                    // north
+                    extendFrontier(current.x, current.y + 1, d)
 
-                // south
-                extendFrontier(current.x, current.y - 1)
+                    // east
+                    extendFrontier(current.x + 1, current.y, d)
+
+                    // south
+                    extendFrontier(current.x, current.y - 1, d)
+                }
             }
         }
 
