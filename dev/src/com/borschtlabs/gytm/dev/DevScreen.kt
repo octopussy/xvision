@@ -114,7 +114,7 @@ class DevScreen : ScreenAdapter() {
                 val cell = level.getCell(x, y)
                 cell?.apply {
                     if (isWall) {
-                        drawDebugRect(x, y)
+                       // drawDebugRect(x, y)
                     }
                 }
             }
@@ -125,21 +125,28 @@ class DevScreen : ScreenAdapter() {
         debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
 
-        drawNavGrid(2, Color(0f, 1f, 0f, 0.5f))
+        debugSR.color = Color(1f, 0f, 0f, 0.5f)
+        drawDebugTurnArea(13, 13, 1, 10)
+
+        debugSR.color = Color(1f, 1f, 0f, 0.5f)
+        drawDebugTurnArea(13, 13, 2, 10)
+
+        debugSR.color = Color(1f, 0f, 1f, 0.5f)
+        drawDebugTurnArea(13, 13, 3, 10)
+
+        debugSR.color = Color(0f, 0f, 1f, 0.5f)
+        drawDebugTurnArea(13, 13, 4, 10)
 
         debugSR.end()
     }
 
-    private fun drawNavGrid(size:Int, color: Color) {
-        debugSR.color = color
-
-        val grid: NavGrid = level.navGrids.get(size)
-        for ((x, y) in grid.waypoints) {
-            debugSR.circle(x, y, 0.1f, 8)
-        }
+    private fun drawDebugTurnArea(x: Int, y: Int, unitSize:Int, maxDistance: Int) {
+        val area = level.getTurnArea(x, y, unitSize, maxDistance)
+        val shift = (unitSize - 1) * 0.5f
+        area.forEach { drawDebugRect(it.x + shift, it.y + shift) }
     }
 
-    private fun drawDebugRect(x: Int, y: Int) {
+    private fun drawDebugRect(x: Float, y: Float) {
         debugSR.rect(x.toFloat(), y.toFloat(), 1f, 1f)
     }
 

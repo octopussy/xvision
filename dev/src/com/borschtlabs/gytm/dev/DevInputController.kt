@@ -13,7 +13,7 @@ class DevInputController(val camera: OrthographicCamera) : GestureDetector(Gestu
 
     override fun scrolled(amount: Int): Boolean {
         camera.zoom += amount * 0.2f
-        camera.zoom = Math.max(1f, Math.min(2.0f, camera.zoom))
+        camera.zoom = Math.max(0.6f, Math.min(2.0f, camera.zoom))
 
         return true
     }

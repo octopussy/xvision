@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.0.4-eap-62'
+    ext.kotlinVersion = '1.0.4-eap-100'
 
     repositories {
         mavenLocal()
@@ -134,6 +134,7 @@ project(":dev") {
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
