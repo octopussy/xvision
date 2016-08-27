@@ -1,19 +1,24 @@
 package com.borschtlabs.gytm.dev
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.utils.Collision
+import com.badlogic.gdx.ai.utils.Ray
+import com.badlogic.gdx.ai.utils.RaycastCollisionDetector
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Disposable
 
 /**
  * @author octopussy
  */
 
-data class Cell(val x: Int, val y: Int) {
-    var isWall: Boolean = false
-}
+class Level private constructor(val width: Int, val height: Int, val cellSize: Int, val tiledMap: TiledMap) :
+        RaycastCollisionDetector<Vector2>, Disposable {
 
-class Level private constructor(val width: Int, val height: Int, val cellSize: Int, val tiledMap: TiledMap) : Disposable {
+    data class Cell(val x: Int, val y: Int) {
+        var isWall: Boolean = false
+    }
 
     private val cells: Array2D<Cell> = Array2D(width, height) { x, y -> Cell(x, y) }
 
@@ -53,6 +58,14 @@ class Level private constructor(val width: Int, val height: Int, val cellSize: I
                 }
             }
         }
+        return false
+    }
+
+    override fun collides(ray: Ray<Vector2>?): Boolean {
+        return false
+    }
+
+    override fun findCollision(outputCollision: Collision<Vector2>?, inputRay: Ray<Vector2>?): Boolean {
         return false
     }
 

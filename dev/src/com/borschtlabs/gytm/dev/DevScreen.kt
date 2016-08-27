@@ -102,6 +102,8 @@ class DevScreen : ScreenAdapter() {
         drawUI()
     }
 
+    private val _areas = mutableMapOf<Int, TurnArea>()
+
     private fun drawDebugLevelGfx() {
         enableBlending()
 
@@ -125,24 +127,46 @@ class DevScreen : ScreenAdapter() {
         debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
 
-        val dist = 30
+        val dist = 50
+
+        val startX = 7
+        val startY = 5
 
        /* debugSR.color = Color(1f, 0f, 0f, 0.5f)
-        drawDebugTurnArea(13, 13, 1, dist)*/
+        drawDebugTurnArea(startX, startY, 1, dist)*/
 
-        debugSR.color = Color(1f, 1f, 0f, 0.5f)
-        drawDebugTurnArea(13, 13, 2, dist)
+        debugSR.color = Color(1f, 0f, 1f, 0.5f)
+        drawDebugTurnArea(startX, startY, 2, dist)
 
         /*debugSR.color = Color(1f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(13, 13, 3, dist)
+        drawDebugTurnArea(startX, startY, 3, dist)
 
         debugSR.color = Color(0f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(13, 13, 4, dist)*/
+        drawDebugTurnArea(startX, startY, 4, dist)*/
 
         debugSR.end()
+
+        val path = _areas[2]!!.getPath(startX, startY, 1, 5)
+
+        debugSR.begin(ShapeRenderer.ShapeType.Line)
+        debugSR.color = Color(1f, 0f, 0f, 1f)
+        drawDebugPath(path, 2)
+        debugSR.end()
+
     }
 
-    private val _areas = mutableMapOf<Int, TurnArea>()
+    private fun drawDebugPath(path: List<TurnArea.WayPoint>, unitSize: Int) {
+        val shift = (unitSize - 1) * 0.5f
+        for (i in 0..path.size - 2) {
+            debugSR.line(
+                    path[i].x.toFloat() + shift,
+                    path[i].y.toFloat() + shift,
+                    0f,
+                    path[i + 1].x.toFloat() + shift,
+                    path[i + 1].y.toFloat() + shift,
+                    0f)
+        }
+    }
 
     private fun drawDebugTurnArea(x: Int, y: Int, unitSize:Int, maxDistance: Int) {
         val area = _areas.getOrPut(unitSize) {
@@ -150,7 +174,7 @@ class DevScreen : ScreenAdapter() {
         }
 
         val shift = (unitSize - 1) * 0.5f
-        area.cells.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
+        area.waypoints.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
     }
 
     private fun drawDebugRect(x: Float, y: Float, size: Float = 1f) {
