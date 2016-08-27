@@ -26,15 +26,21 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
 
     override fun getNodeCount(): Int = waypoints.size
 
-    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int): List<WayPoint> {
+    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int, smooth: Boolean): List<WayPoint> {
         val from = getWayPoint(fromX, formY)
         val to = getWayPoint(toX, toY)
+
+        if (from == null || to == null) {
+            return listOf()
+        }
 
         val out: MySmoothableGraphPath = MySmoothableGraphPath()
 
         pathFinder.searchNodePath(from, to, ManhattanDistanceHeuristic(), out)
 
-        pathSmoother.smoothPath(out)
+        if (smooth) {
+            pathSmoother.smoothPath(out)
+        }
 
         return out.toList()
     }
@@ -49,18 +55,18 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
                 return TurnArea(listOf(), level)
             }
 
-            val frontier = mutableListOf<WayPoint?>()
-
+            val frontier = mutableListOf<WayPoint>()
             val visited = mutableSetOf<WayPoint>()
             val distanceMap = mutableMapOf<WayPoint, Int>()
 
-            val centerShift = (unitSize - 1) * 0.5f
+            val centerShift = unitSize * 0.5f
 
             fun extendFrontier(from: WayPoint?, x: Int, y: Int, distance: Int) {
-                val n = level.getCell(x, y)
-                val alreadyVisited = visited.find { it.cell == n } == null
-                if (n != null && alreadyVisited && !level.checkCellsIfOccupied(unitSize, n.x, n.y)) {
-                    val wp = WayPoint(n, visited.size, Vector2(n.x + centerShift, n.y + centerShift))
+                val neighbour = level.getCell(x, y)
+                val alreadyVisited = visited.find { it.cell == neighbour } == null
+
+                if (neighbour != null && alreadyVisited && !level.checkCellsIfOccupied(unitSize, neighbour.x, neighbour.y)) {
+                    val wp = WayPoint(neighbour, visited.size, Vector2(neighbour.x + centerShift, neighbour.y + centerShift))
                     from?.connections?.add(DefaultConnection(from, wp))
                     frontier.add(wp)
                     visited.add(wp)
@@ -71,7 +77,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, level: Level) 
             extendFrontier(null, startX, startY, maxDistance)
 
             while (frontier.isNotEmpty()) {
-                val current = frontier.removeAt(0)!!
+                val current = frontier.removeAt(0)
 
                 val d = (distanceMap[current] ?: 0) - 1
 
