@@ -66,7 +66,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
 
                 if (neighbour != null && alreadyVisited && !level.checkCellsIfOccupied(unitSize, neighbour.x, neighbour.y)) {
                     val wp = WayPoint(neighbour, visited.size, Vector2(neighbour.x + centerShift, neighbour.y + centerShift))
-                    from?.connections?.add(DefaultConnection(from, wp))
+                    from?.connections?.add(DefaultConnection<WayPoint>(from, wp));
                     frontier.add(wp)
                     visited.add(wp)
                     distanceMap[wp] = distance

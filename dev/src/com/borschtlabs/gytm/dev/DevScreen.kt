@@ -18,13 +18,6 @@ import enableBlending
  * @author octopussy
  */
 
-fun ShapeRenderer.draw(type: ShapeRenderer.ShapeType, color: Color, block: () -> Unit) {
-    begin(type)
-    this.color = color
-    block.invoke()
-    end()
-}
-
 class DevScreen : ScreenAdapter() {
 
     private val VIEWPORT_WIDTH = 30
@@ -46,7 +39,7 @@ class DevScreen : ScreenAdapter() {
 
     val startX = 2
     val startY = 6
-    val unitSize = 2
+    val unitSize = 1
 
     var endX = 8
     var endY = 2

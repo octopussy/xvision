@@ -1,5 +1,8 @@
 package com.borschtlabs.gytm.dev
 
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+
 /**
  * @author octopussy
  */
@@ -36,4 +39,11 @@ class Array2D<T> (val xSize: Int, val ySize: Int, val array: Array<Array<T>>) {
     inline fun forEachIndexed(operation: (x: Int, y: Int, T) -> Unit) {
         array.forEachIndexed { x, p -> p.forEachIndexed { y, t -> operation.invoke(x, y, t) } }
     }
+}
+
+fun ShapeRenderer.draw(type: ShapeRenderer.ShapeType, color: Color, block: () -> Unit) {
+    begin(type)
+    this.color = color
+    block.invoke()
+    end()
 }
