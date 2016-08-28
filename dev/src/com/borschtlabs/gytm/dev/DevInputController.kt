@@ -9,7 +9,8 @@ import com.badlogic.gdx.math.Vector3
  * @author octopussy
  */
 
-class DevInputController(val camera: OrthographicCamera) : GestureDetector(GestureListener(camera)) {
+class DevInputController(val camera: OrthographicCamera, tapListener:(x: Float, y: Float)->Unit) :
+        GestureDetector(GestureListener(camera, tapListener)) {
 
     override fun scrolled(amount: Int): Boolean {
         camera.zoom += amount * 0.2f
@@ -17,10 +18,17 @@ class DevInputController(val camera: OrthographicCamera) : GestureDetector(Gestu
 
         return true
     }
-    private class GestureListener(val camera: Camera): GestureAdapter() {
+
+    private class GestureListener(val camera: Camera, val tapListener:(x: Float, y: Float)->Unit): GestureAdapter() {
         override fun pan(x: Float, y: Float, deltaX: Float, deltaY: Float): Boolean {
             val centerScr = Vector3()
             camera.translate(camera.unproject(Vector3().add(-deltaX, -deltaY, 0f)).sub(camera.unproject(centerScr)))
+            return true
+        }
+
+        override fun tap(x: Float, y: Float, count: Int, button: Int): Boolean {
+            val vec = camera.unproject(Vector3(x, y, 0f))
+            tapListener(vec.x, vec.y)
             return true
         }
     }

@@ -12,8 +12,7 @@ import com.badlogic.gdx.math.Vector2
 
 class MyRayCollisionDetector(private val level: Level, private val unitRadius: Float) : RaycastCollisionDetector<Vector2> {
 
-    val intersectionMinDistance = 0.5
-    val proximityDistance = Math.sqrt(intersectionMinDistance)
+    val proximityDistance = Math.sqrt(0.5)
 
     override fun collides(ray: Ray<Vector2>): Boolean = collides(null, ray)
 
@@ -48,7 +47,14 @@ class MyRayCollisionDetector(private val level: Level, private val unitRadius: F
             for (x in minX..maxX) {
                 val cell = level.getCell(x, y)
                 if (cell != null && cell.isWall) {
-                    cells.add(cell)
+                    val distance = Intersector.distanceLinePoint(
+                            ray.start.x, ray.start.y,
+                            ray.end.x, ray.end.y,
+                            cell.x + 0.5f, cell.y + 0.5f)
+
+                    if (distance < proximityDistance) {
+                        cells.add(cell)
+                    }
                 }
             }
         }
@@ -58,8 +64,8 @@ class MyRayCollisionDetector(private val level: Level, private val unitRadius: F
         val nearestIntersection: Vector2 = Vector2(Float.MAX_VALUE, Float.MAX_VALUE)
         var nearestDistance = Float.MAX_VALUE
 
-        val detectNearestIntersection = out != null
-        val intersectionVector: Vector2? = if (detectNearestIntersection) Vector2() else null
+        val detectNearestIntersection = false
+        val intersectionVector: Vector2? = Vector2()
 
         val checkEdge: (Float, Float, Float, Float) -> Unit = {
             x1, y1, x2, y2 ->

@@ -2,7 +2,6 @@ package com.borschtlabs.gytm.dev
 
 import com.badlogic.gdx.ai.pfa.Connection
 import com.badlogic.gdx.ai.pfa.DefaultConnection
-import com.badlogic.gdx.ai.pfa.PathSmoother
 import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
 import com.badlogic.gdx.math.Vector2
@@ -12,7 +11,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
 
     private val pathFinder = IndexedAStarPathFinder<WayPoint>(this)
 
-    class WayPoint(val cell: Level.Cell, val index: Int, val center: Vector2) {
+    data class WayPoint(val cell: Level.Cell, val index: Int, val center: Vector2) {
         val x: Int get() = cell.x
         val y: Int get() = cell.y
 
@@ -38,7 +37,7 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
         pathFinder.searchNodePath(from, to, ManhattanDistanceHeuristic(), out)
 
         if (smooth) {
-            val pathSmoother = PathSmoother<WayPoint, Vector2>(MyRayCollisionDetector(level, unitRadius))
+            val pathSmoother = MyPathSmoother(MyRayCollisionDetector(level, unitRadius))
             pathSmoother.smoothPath(out)
         }
 

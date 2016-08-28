@@ -35,6 +35,22 @@ class DevScreen : ScreenAdapter() {
 
     private lateinit var debugSR: ShapeRenderer
 
+
+
+    val dist = 100
+
+    val startX = 2
+    val startY = 6
+    val unitSize = 1
+
+    var endX = 8
+    var endY = 2
+    val areas = mutableMapOf<Int, TurnArea>()
+
+    var path: List<TurnArea.WayPoint>? = null
+    var smoothedPath: List<TurnArea.WayPoint>? = null
+
+
     override fun show() {
         cam = OrthographicCamera()
 
@@ -54,10 +70,15 @@ class DevScreen : ScreenAdapter() {
 
         debugSR = ShapeRenderer()
 
-        Gdx.input.inputProcessor = DevInputController(cam)
+        Gdx.input.inputProcessor = DevInputController(cam, onTap)
 
         cam.position.set(VIEWPORT_WIDTH / 2f, VIEWPORT_WIDTH / 2f - 10, 0f)
         resize(Gdx.graphics.width, Gdx.graphics.height)
+
+        areas.put(1, TurnArea.create(level, startX, startY, 1, dist))
+        areas.put(2, TurnArea.create(level, startX, startY, 2, dist))
+        areas.put(3, TurnArea.create(level, startX, startY, 3, dist))
+        areas.put(4, TurnArea.create(level, startX, startY, 4, dist))
     }
 
     override fun dispose() {
@@ -68,6 +89,7 @@ class DevScreen : ScreenAdapter() {
         guiBatch.dispose()
 
     }
+
     override fun resize(width: Int, height: Int) {
         guiCam.setToOrtho(true, width.toFloat(), height.toFloat())
 
@@ -102,7 +124,13 @@ class DevScreen : ScreenAdapter() {
         drawUI()
     }
 
-    private val _areas = mutableMapOf<Int, TurnArea>()
+    private val onTap: (x: Float, y: Float) -> Unit = { x, y ->
+        endX = Math.floor(x.toDouble()).toInt()
+        endY = Math.floor(y.toDouble()).toInt()
+
+        path = areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2.5f, false)
+        smoothedPath = areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2.5f, true)
+    }
 
     private fun drawDebugLevelGfx() {
         enableBlending()
@@ -111,12 +139,12 @@ class DevScreen : ScreenAdapter() {
         debugSR.projectionMatrix = cam.combined
         debugSR.color = Color(1f, 0f, 0f, 0.5f)
 
-        for(y in 0..level.height - 1) {
+        for (y in 0..level.height - 1) {
             for (x in 0..level.width - 1) {
                 val cell = level.getCell(x, y)
                 cell?.apply {
                     if (isWall) {
-                       // drawDebugRect(x, y)
+                        // drawDebugRect(x, y)
                     }
                 }
             }
@@ -127,31 +155,29 @@ class DevScreen : ScreenAdapter() {
         debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
 
-        val dist = 50
-
-        val startX = 13
-        val startY = 16
-        val endX = 39
-        val endY = 19
-        val unitSize = 2
-
         debugSR.color = Color(1f, 0f, 1f, 0.5f)
-        drawDebugTurnArea(startX, startY, unitSize, dist)
+    //    drawDebugTurnArea(startX, startY, unitSize, dist)
 
         debugSR.end()
-
-        val path = _areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2f, false)
-        val smoothedPath = _areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2f, true)
 
         debugSR.begin(ShapeRenderer.ShapeType.Line)
 
         debugSR.color = Color(1f, 0f, 0f, 1f)
-        drawDebugPath(path)
+        path?.let { drawDebugPath(it) }
 
         debugSR.color = Color(0f, 0f, 1f, 1f)
-        drawDebugPath(smoothedPath)
+        smoothedPath?.let { drawDebugPath(it) }
 
         debugSR.end()
+
+        /*debugSR.begin(ShapeRenderer.ShapeType.Line)
+        debugSR.color = Color.BROWN
+        debugSR.line(2.7891815f, 6.3675447f, 5.7891817f, 5.3675447f)
+
+        debugSR.color = Color.YELLOW
+        debugSR.line(2.715395f,6.146185f, 5.715395f,5.146185f)
+
+        debugSR.end()*/
 
     }
 
@@ -165,8 +191,8 @@ class DevScreen : ScreenAdapter() {
         }
     }
 
-    private fun drawDebugTurnArea(x: Int, y: Int, unitSize:Int, maxDistance: Int) {
-        val area = _areas.getOrPut(unitSize) {
+    private fun drawDebugTurnArea(x: Int, y: Int, unitSize: Int, maxDistance: Int) {
+        val area = areas.getOrPut(unitSize) {
             TurnArea.create(level, x, y, unitSize, maxDistance)
         }
 
