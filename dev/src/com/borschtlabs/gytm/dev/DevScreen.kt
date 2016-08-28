@@ -18,6 +18,13 @@ import enableBlending
  * @author octopussy
  */
 
+fun ShapeRenderer.draw(type: ShapeRenderer.ShapeType, color: Color, block: () -> Unit) {
+    begin(type)
+    this.color = color
+    block.invoke()
+    end()
+}
+
 class DevScreen : ScreenAdapter() {
 
     private val VIEWPORT_WIDTH = 30
@@ -35,13 +42,11 @@ class DevScreen : ScreenAdapter() {
 
     private lateinit var debugSR: ShapeRenderer
 
-
-
-    val dist = 100
+    val dist = 50
 
     val startX = 2
     val startY = 6
-    val unitSize = 1
+    val unitSize = 2
 
     var endX = 8
     var endY = 2
@@ -125,8 +130,17 @@ class DevScreen : ScreenAdapter() {
     }
 
     private val onTap: (x: Float, y: Float) -> Unit = { x, y ->
-        endX = Math.floor(x.toDouble()).toInt()
-        endY = Math.floor(y.toDouble()).toInt()
+        when {
+            unitSize % 2 != 0 -> {
+                endX = Math.floor(x.toDouble() - unitSize / 2).toInt()
+                endY = Math.floor(y.toDouble() - unitSize / 2).toInt()
+            }
+
+            else -> {
+                endX = Math.round(x.toDouble() - unitSize / 2).toInt()
+                endY = Math.round(y.toDouble() - unitSize / 2).toInt()
+            }
+        }
 
         path = areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2.5f, false)
         smoothedPath = areas[unitSize]!!.getPath(startX, startY, endX, endY, unitSize / 2.5f, true)
@@ -135,40 +149,37 @@ class DevScreen : ScreenAdapter() {
     private fun drawDebugLevelGfx() {
         enableBlending()
 
-        debugSR.begin(ShapeRenderer.ShapeType.Filled)
         debugSR.projectionMatrix = cam.combined
-        debugSR.color = Color(1f, 0f, 0f, 0.5f)
 
-        for (y in 0..level.height - 1) {
-            for (x in 0..level.width - 1) {
-                val cell = level.getCell(x, y)
-                cell?.apply {
-                    if (isWall) {
-                        // drawDebugRect(x, y)
+        debugSR.draw(ShapeRenderer.ShapeType.Filled, Color(1f, 0f, 0f, 0.5f)) {
+            for (y in 0..level.height - 1) {
+                for (x in 0..level.width - 1) {
+                    val cell = level.getCell(x, y)
+                    cell?.apply {
+                        if (isWall) {
+                            // drawDebugRect(x, y)
+                        }
                     }
                 }
             }
         }
 
-        debugSR.end()
+        debugSR.draw(ShapeRenderer.ShapeType.Line, Color.MAROON) {
+            drawDebugRect(endX.toFloat(), endY.toFloat(), unitSize.toFloat())
+        }
 
-        debugSR.begin(ShapeRenderer.ShapeType.Filled)
-        debugSR.projectionMatrix = cam.combined
+        debugSR.draw(ShapeRenderer.ShapeType.Filled, Color(0f, 1f, 0f, 0.3f)) {
+            drawDebugTurnArea(startX, startY, unitSize, dist)
+        }
 
-        debugSR.color = Color(1f, 0f, 1f, 0.5f)
-    //    drawDebugTurnArea(startX, startY, unitSize, dist)
+        debugSR.draw(ShapeRenderer.ShapeType.Line, Color(1f, 0f, 0f, 1f)) {
+            path?.let { drawDebugPath(it) }
+        }
 
-        debugSR.end()
+        debugSR.draw(ShapeRenderer.ShapeType.Line, Color(0f, 0f, 1f, 1f)) {
+            smoothedPath?.let { drawDebugPath(it) }
+        }
 
-        debugSR.begin(ShapeRenderer.ShapeType.Line)
-
-        debugSR.color = Color(1f, 0f, 0f, 1f)
-        path?.let { drawDebugPath(it) }
-
-        debugSR.color = Color(0f, 0f, 1f, 1f)
-        smoothedPath?.let { drawDebugPath(it) }
-
-        debugSR.end()
 
         /*debugSR.begin(ShapeRenderer.ShapeType.Line)
         debugSR.color = Color.BROWN
