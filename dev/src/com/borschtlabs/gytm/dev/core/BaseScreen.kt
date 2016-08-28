@@ -1,5 +1,6 @@
 package com.borschtlabs.gytm.dev.core
 
+import com.badlogic.ashley.core.Engine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
@@ -16,6 +17,10 @@ import com.borschtlabs.gytm.dev.DevInputController
 
 abstract class BaseScreen : ScreenAdapter() {
     private val VIEWPORT_WIDTH = 30
+
+    val engine: Engine = Engine()
+
+    val world: World = World()
 
     private lateinit var font: BitmapFont
 
@@ -75,6 +80,8 @@ abstract class BaseScreen : ScreenAdapter() {
             Gdx.app.exit()
             return
         }
+
+        engine.update(delta)
     }
 
     fun drawDebugUI() {

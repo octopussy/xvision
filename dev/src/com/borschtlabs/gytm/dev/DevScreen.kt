@@ -32,7 +32,6 @@ class DevScreen : BaseScreen() {
     var path: List<TurnArea.WayPoint>? = null
     var smoothedPath: List<TurnArea.WayPoint>? = null
 
-
     override fun show() {
         super.show()
 
