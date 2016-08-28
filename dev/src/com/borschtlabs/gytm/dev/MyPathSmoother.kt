@@ -1,6 +1,5 @@
 package com.borschtlabs.gytm.dev
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.pfa.Connection
 import com.badlogic.gdx.ai.pfa.DefaultGraphPath
 import com.badlogic.gdx.ai.pfa.GraphPath
@@ -73,6 +72,6 @@ class MyPathSmoother(internal var raycastCollisionDetector: RaycastCollisionDete
 
         out.forEach { path.add(it.wp) }
 
-        Gdx.app.log("PERF", "${TimeUtils.millis() - _start}")
+        //Gdx.app.log("PERF", "${TimeUtils.millis() - _start}")
     }
 }

@@ -1,45 +1,29 @@
 package com.borschtlabs.gytm.dev
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.Batch
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.borschtlabs.gytm.dev.core.BaseScreen
 import enableBlending
 
 /**
  * @author octopussy
  */
 
-class DevScreen : ScreenAdapter() {
-
-    private val VIEWPORT_WIDTH = 30
-
-    private lateinit var font: BitmapFont
-    private lateinit var guiCam: OrthographicCamera
-    private lateinit var batch: Batch
-    private lateinit var guiBatch: Batch
-
-    private lateinit var cam: OrthographicCamera
+class DevScreen : BaseScreen() {
 
     private lateinit var level: Level
 
     private lateinit var levelRenderer: LevelRenderer
 
-    private lateinit var debugSR: ShapeRenderer
-
     val dist = 50
 
     val startX = 2
     val startY = 6
-    val unitSize = 1
+    val unitSize = 2
 
     var endX = 8
     var endY = 2
@@ -50,12 +34,9 @@ class DevScreen : ScreenAdapter() {
 
 
     override fun show() {
-        cam = OrthographicCamera()
+        super.show()
 
-        batch = SpriteBatch()
-        guiBatch = SpriteBatch()
-        guiCam = OrthographicCamera()
-        font = BitmapFont(true)
+        Gdx.gl.glLineWidth(5f)
 
         val params = TmxMapLoader.Parameters()
         params.generateMipMaps = true
@@ -68,11 +49,6 @@ class DevScreen : ScreenAdapter() {
 
         debugSR = ShapeRenderer()
 
-        Gdx.input.inputProcessor = DevInputController(cam, onTap)
-
-        cam.position.set(VIEWPORT_WIDTH / 2f, VIEWPORT_WIDTH / 2f - 10, 0f)
-        resize(Gdx.graphics.width, Gdx.graphics.height)
-
         areas.put(1, TurnArea.create(level, startX, startY, 1, dist))
         areas.put(2, TurnArea.create(level, startX, startY, 2, dist))
         areas.put(3, TurnArea.create(level, startX, startY, 3, dist))
@@ -80,36 +56,14 @@ class DevScreen : ScreenAdapter() {
     }
 
     override fun dispose() {
+        super.dispose()
+
         levelRenderer.dispose()
         level.dispose()
-        font.dispose()
-        batch.dispose()
-        guiBatch.dispose()
-
-    }
-
-    override fun resize(width: Int, height: Int) {
-        guiCam.setToOrtho(true, width.toFloat(), height.toFloat())
-
-        val aspectRatio = height / width.toFloat()
-        val w = VIEWPORT_WIDTH.toFloat()
-
-        val pos = cam.position.cpy()
-        if (aspectRatio < 1) {
-            cam.setToOrtho(false, w, w * aspectRatio)
-        } else {
-            cam.setToOrtho(false, w / aspectRatio, w)
-        }
-
-        cam.position.set(pos)
-        cam.update()
     }
 
     override fun render(delta: Float) {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit()
-            return
-        }
+        super.render(delta)
 
         Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -119,19 +73,19 @@ class DevScreen : ScreenAdapter() {
 
         drawDebugLevelGfx()
 
-        drawUI()
+        drawDebugUI()
     }
 
-    private val onTap: (x: Float, y: Float) -> Unit = { x, y ->
+    override fun onTap (px: Float, py: Float) {
         when {
             unitSize % 2 != 0 -> {
-                endX = Math.floor(x.toDouble() - unitSize / 2).toInt()
-                endY = Math.floor(y.toDouble() - unitSize / 2).toInt()
+                endX = Math.floor(px.toDouble() - unitSize / 2).toInt()
+                endY = Math.floor(py.toDouble() - unitSize / 2).toInt()
             }
 
             else -> {
-                endX = Math.round(x.toDouble() - unitSize / 2).toInt()
-                endY = Math.round(y.toDouble() - unitSize / 2).toInt()
+                endX = Math.round(px.toDouble() - unitSize / 2).toInt()
+                endY = Math.round(py.toDouble() - unitSize / 2).toInt()
             }
         }
 
@@ -165,9 +119,9 @@ class DevScreen : ScreenAdapter() {
             drawDebugTurnArea(startX, startY, unitSize, dist)
         }
 
-        debugSR.draw(ShapeRenderer.ShapeType.Line, Color(1f, 0f, 0f, 1f)) {
+        /*debugSR.draw(ShapeRenderer.ShapeType.Line, Color(1f, 0f, 0f, 1f)) {
             path?.let { drawDebugPath(it) }
-        }
+        }*/
 
         debugSR.draw(ShapeRenderer.ShapeType.Line, Color(0f, 0f, 1f, 1f)) {
             smoothedPath?.let { drawDebugPath(it) }
@@ -203,19 +157,4 @@ class DevScreen : ScreenAdapter() {
         val shift = (unitSize - 1) * 0.5f
         area.waypoints.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
     }
-
-    private fun drawDebugRect(x: Float, y: Float, size: Float = 1f) {
-        debugSR.rect(x.toFloat(), y.toFloat(), size, size)
-    }
-
-    private fun drawUI() {
-        guiCam.update()
-        guiBatch.projectionMatrix = guiCam.combined
-        guiBatch.begin()
-        font.draw(guiBatch, "${Gdx.graphics.framesPerSecond} fps\n" +
-                "w: ${Gdx.graphics.width} h: ${Gdx.graphics.height}\n" +
-                "ar: ${Gdx.graphics.height / Gdx.graphics.width.toFloat()}", 10f, 10f)
-        guiBatch.end()
-    }
-
 }
