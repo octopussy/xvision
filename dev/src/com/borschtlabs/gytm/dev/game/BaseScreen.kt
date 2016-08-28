@@ -1,31 +1,29 @@
-package com.borschtlabs.gytm.dev.core
+package com.borschtlabs.gytm.dev.game
 
 import com.badlogic.ashley.core.Engine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.borschtlabs.gytm.dev.DevInputController
+import com.borschtlabs.gytm.dev.core.World
+import com.borschtlabs.gytm.dev.core.systems.CoreSystem
+import com.borschtlabs.gytm.dev.core.systems.WorldRenderingSystem
 
 /**
  * @author octopussy
  */
 
 abstract class BaseScreen : ScreenAdapter() {
-    private val VIEWPORT_WIDTH = 30
-
     val engine: Engine = Engine()
 
-    val world: World = World()
+    val world: World = World(engine)
 
     private lateinit var font: BitmapFont
-
-    lateinit var cam: OrthographicCamera
-    lateinit var batch: Batch
 
     private lateinit var guiCam: OrthographicCamera
     private lateinit var guiBatch: Batch
@@ -35,47 +33,39 @@ abstract class BaseScreen : ScreenAdapter() {
     abstract fun onTap(px: Float, py: Float)
 
     override fun show() {
-        cam = OrthographicCamera()
+        initSystems()
+
+        debugSR = ShapeRenderer()
 
         font = BitmapFont(true)
 
-        batch = SpriteBatch()
         guiBatch = SpriteBatch()
         guiCam = OrthographicCamera()
 
-        Gdx.input.inputProcessor = DevInputController(cam, {
-            x, y ->
-            onTap(x, y)
-        })
-
-        cam.position.set(VIEWPORT_WIDTH / 2f, VIEWPORT_WIDTH / 2f - 10, 0f)
         resize(Gdx.graphics.width, Gdx.graphics.height)
+
+        world.loadLevel("test")
+    }
+
+    private fun initSystems() {
+        engine.addSystem(CoreSystem(world))
+        engine.addSystem(WorldRenderingSystem(world))
     }
 
     override fun dispose() {
         font.dispose()
-        batch.dispose()
         guiBatch.dispose()
     }
 
     override fun resize(width: Int, height: Int) {
+        engine.getSystem(CoreSystem::class.java).resize(width, height)
         guiCam.setToOrtho(true, width.toFloat(), height.toFloat())
-
-        val aspectRatio = height / width.toFloat()
-        val w = VIEWPORT_WIDTH.toFloat()
-
-        val pos = cam.position.cpy()
-        if (aspectRatio < 1) {
-            cam.setToOrtho(false, w, w * aspectRatio)
-        } else {
-            cam.setToOrtho(false, w / aspectRatio, w)
-        }
-
-        cam.position.set(pos)
-        cam.update()
     }
 
     override fun render(delta: Float) {
+        Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit()
             return

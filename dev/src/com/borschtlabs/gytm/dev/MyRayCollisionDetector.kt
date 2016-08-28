@@ -5,6 +5,7 @@ import com.badlogic.gdx.ai.utils.Ray
 import com.badlogic.gdx.ai.utils.RaycastCollisionDetector
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Vector2
+import com.borschtlabs.gytm.dev.level.Level
 
 /**
  * @author octopussy

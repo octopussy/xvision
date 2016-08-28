@@ -6,6 +6,7 @@ import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import com.borschtlabs.gytm.dev.level.Level
 
 class TurnArea private constructor(val waypoints: List<WayPoint>, private val level: Level) : IndexedGraph<TurnArea.WayPoint> {
 

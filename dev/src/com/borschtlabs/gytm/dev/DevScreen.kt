@@ -2,11 +2,10 @@ package com.borschtlabs.gytm.dev
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.maps.tiled.TmxMapLoader
-import com.borschtlabs.gytm.dev.core.BaseScreen
+import com.borschtlabs.gytm.dev.core.CameraActor
+import com.borschtlabs.gytm.dev.core.systems.CoreSystem
+import com.borschtlabs.gytm.dev.game.BaseScreen
 import enableBlending
 
 /**
@@ -14,10 +13,6 @@ import enableBlending
  */
 
 class DevScreen : BaseScreen() {
-
-    private lateinit var level: Level
-
-    private lateinit var levelRenderer: LevelRenderer
 
     val dist = 50
 
@@ -37,38 +32,19 @@ class DevScreen : BaseScreen() {
 
         Gdx.gl.glLineWidth(5f)
 
-        val params = TmxMapLoader.Parameters()
-        params.generateMipMaps = true
-        params.textureMagFilter = Texture.TextureFilter.MipMapNearestNearest
-        params.textureMinFilter = Texture.TextureFilter.MipMapNearestNearest
+        areas.put(1, TurnArea.create(world.level!!, startX, startY, 1, dist))
+        areas.put(2, TurnArea.create(world.level!!, startX, startY, 2, dist))
+        areas.put(3, TurnArea.create(world.level!!, startX, startY, 3, dist))
+        areas.put(4, TurnArea.create(world.level!!, startX, startY, 4, dist))
 
-        level = LevelLoader("maps").load("test")
-
-        levelRenderer = LevelRenderer(level, batch)
-
-        debugSR = ShapeRenderer()
-
-        areas.put(1, TurnArea.create(level, startX, startY, 1, dist))
-        areas.put(2, TurnArea.create(level, startX, startY, 2, dist))
-        areas.put(3, TurnArea.create(level, startX, startY, 3, dist))
-        areas.put(4, TurnArea.create(level, startX, startY, 4, dist))
-    }
-
-    override fun dispose() {
-        super.dispose()
-
-        levelRenderer.dispose()
-        level.dispose()
+        val camActor = world.spawnActor<CameraActor> {
+            location.set(20f, 20f, 0f)
+            setAsActiveCamera()
+        }
     }
 
     override fun render(delta: Float) {
         super.render(delta)
-
-        Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        cam.update()
-        levelRenderer.render(cam)
 
         drawDebugLevelGfx()
 
@@ -95,7 +71,9 @@ class DevScreen : BaseScreen() {
     private fun drawDebugLevelGfx() {
         enableBlending()
 
-        debugSR.projectionMatrix = cam.combined
+        debugSR.projectionMatrix = engine.getSystem(CoreSystem::class.java).activeCamera.combined
+
+        val level = world.level ?: return
 
         debugSR.draw(ShapeRenderer.ShapeType.Filled, Color(1f, 0f, 0f, 0.5f)) {
             for (y in 0..level.height - 1) {
@@ -149,11 +127,9 @@ class DevScreen : BaseScreen() {
     }
 
     private fun drawDebugTurnArea(x: Int, y: Int, unitSize: Int, maxDistance: Int) {
-        val area = areas.getOrPut(unitSize) {
-            TurnArea.create(level, x, y, unitSize, maxDistance)
-        }
+        val area = areas[unitSize]
 
         val shift = (unitSize - 1) * 0.5f
-        area.waypoints.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
+        area?.waypoints?.forEach { drawDebugRect(it.x + shift, it.y + shift, 1f) }
     }
 }
