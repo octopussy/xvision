@@ -38,14 +38,14 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
         pathFinder.searchNodePath(from, to, ManhattanDistanceHeuristic(), out)
 
         if (smooth) {
-            val pathSmoother = MyPathSmoother(MyRayCollisionDetector(level, unitRadius))
+            val pathSmoother = MyPathSmoother(MyRayCollisionDetector(level, unitRadius * 0.9f))
             pathSmoother.smoothPath(out)
         }
 
         outList.clear()
         outList.addAll(out.toList())
 
-        return true
+        return outList.size > 0
     }
 
     private fun getWayPoint(x: Int, y: Int): WayPoint? = waypoints.find { it.x == x && it.y == y }

@@ -1,6 +1,7 @@
 package com.borschtlabs.gytm.dev.game
 
-import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.math.Vector2
+import com.borschtlabs.gytm.dev.PathInterpolator
 import com.borschtlabs.gytm.dev.TurnArea
 import com.borschtlabs.gytm.dev.core.Actor
 import com.borschtlabs.gytm.dev.core.World
@@ -12,66 +13,65 @@ import kotlin.properties.Delegates
 
 open class GameUnitActor(world: World) : Actor(world) {
 
+    private var path: PathInterpolator by Delegates.notNull()
+
     var state: State = State.IDLE
 
     var turnArea: TurnArea by Delegates.notNull()
-
-    val movingRoute: MutableList<TurnArea.WayPoint> = mutableListOf()
 
     var cellX: Int = 0
 
     var cellY: Int = 0
 
-    private var distancePassed: Float = 0f
+    private var distancePassed: Double = 0.0
+
+    private val unitSize: Int = 2
 
     fun startTurn() {
         state = State.IDLE
-        turnArea = TurnArea.create(world.level, cellX, cellY, 1, 50)
+        turnArea = TurnArea.create(world.level, cellX, cellY, unitSize, 50)
     }
 
     fun moveToCell(toCellX: Int, toCellY: Int) {
         if (state == State.IDLE) {
             startTurn()
+        } else {
+            return
         }
 
-        if (!turnArea.getPath(cellX, cellY, toCellX, toCellY, 1f, true, movingRoute)) {
+        val movingRoute = mutableListOf<TurnArea.WayPoint>()
+        if (!turnArea.getPath(cellX, cellY, toCellX, toCellY, unitSize / 2.0f, true, movingRoute)) {
             return
+        }
+
+        path = PathInterpolator()
+        movingRoute.forEach {
+            path.addPoint(it.center)
         }
 
         cellX = toCellX
         cellY = toCellY
 
-        distancePassed = 0f
+        distancePassed = 0.0
         state = State.MOVING
     }
 
     override fun tick(dt: Float) {
         if (state == State.MOVING) {
-            stepMovement(dt, 5.0f)
+            stepMovement(dt, 10.0f)
         }
     }
 
     fun stepMovement(deltaTime: Float, speed: Float) {
         distancePassed += deltaTime * speed
 
-        val cells = movingRoute
-        val passed = distancePassed.toDouble()
-
-        val indexA = Math.floor(passed).toInt()
-        val indexB = Math.floor(passed).toInt() + 1
-
-        if (indexA < 0 || indexA >= cells.size || indexB < 0 || indexB >= cells.size) {
-            Gdx.app.log("333", "$indexA $indexB  ${cells.size}")
+        val pos = Vector2()
+        if (!path.interpolate(distancePassed, pos)) {
             state = State.IDLE
             startTurn()
-        } else {
-            val cellA = cells[indexA]
-            val cellB = cells[indexB]
-            val f = passed - Math.floor(passed)
-
-            location.x = ((cellB.x - cellA.x) * f + cellA.x).toFloat()
-            location.y = ((cellB.y - cellA.y) * f + cellA.y).toFloat()
         }
+
+        location.set(pos.x, pos.y, 0f)
     }
 
     companion object {
