@@ -25,12 +25,12 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
 
     override fun getNodeCount(): Int = waypoints.size
 
-    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int, unitRadius: Float, smooth: Boolean): List<WayPoint> {
+    fun getPath(fromX: Int, formY: Int, toX: Int, toY: Int, unitRadius: Float, smooth: Boolean, outList: MutableList<WayPoint>): Boolean {
         val from = getWayPoint(fromX, formY)
         val to = getWayPoint(toX, toY)
 
         if (from == null || to == null) {
-            return listOf()
+            return false
         }
 
         val out: MySmoothableGraphPath = MySmoothableGraphPath()
@@ -42,7 +42,10 @@ class TurnArea private constructor(val waypoints: List<WayPoint>, private val le
             pathSmoother.smoothPath(out)
         }
 
-        return out.toList()
+        outList.clear()
+        outList.addAll(out.toList())
+
+        return true
     }
 
     private fun getWayPoint(x: Int, y: Int): WayPoint? = waypoints.find { it.x == x && it.y == y }

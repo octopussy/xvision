@@ -3,6 +3,7 @@ package com.borschtlabs.gytm.dev.core
 import com.badlogic.ashley.core.Engine
 import com.borschtlabs.gytm.dev.level.Level
 import com.borschtlabs.gytm.dev.level.LevelLoader
+import kotlin.properties.Delegates
 
 /**
  * @author octopussy
@@ -12,7 +13,7 @@ class World(val engine: Engine) {
 
     private var _levelName: String = "<no level>"
 
-    var level: Level? = null
+    var level: Level by Delegates.notNull()
 
     val levelName: String = _levelName
 

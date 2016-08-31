@@ -1,13 +1,15 @@
 package com.borschtlabs.gytm.dev.core
 
 import com.badlogic.gdx.math.Vector3
-import com.borschtlabs.gytm.dev.core.systems.CoreSystem
+import com.borschtlabs.gytm.dev.core.systems.RenderingSystem
 
 /**
  * @author octopussy
  */
 
 class CameraActor(world: World) : Actor(world) {
+
+    private val renderingSystem: RenderingSystem get() = world.engine.getSystem(RenderingSystem::class.java)
 
     private var camComponent: CameraComponent
 
@@ -22,10 +24,8 @@ class CameraActor(world: World) : Actor(world) {
             camComponent.camera.zoom = value
         }
 
-    private val core: CoreSystem get() = world.engine.getSystem(CoreSystem::class.java)
-
     fun setAsActiveCamera() {
-        core.activeCamera = getComponent(CameraComponent::class.java).camera
+        renderingSystem.activeCamera = getComponent(CameraComponent::class.java).camera
     }
 
     fun unproject(vec: Vector3): Vector3 = camComponent.camera.unproject(vec)

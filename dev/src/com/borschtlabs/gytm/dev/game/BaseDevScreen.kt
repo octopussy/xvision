@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.borschtlabs.gytm.dev.core.World
 import com.borschtlabs.gytm.dev.core.systems.CoreSystem
-import com.borschtlabs.gytm.dev.core.systems.WorldRenderingSystem
+import com.borschtlabs.gytm.dev.core.systems.RenderingSystem
 
 /**
  * @author octopussy
@@ -45,7 +45,7 @@ abstract class BaseDevScreen : ScreenAdapter() {
 
     private fun initSystems() {
         engine.addSystem(CoreSystem(world))
-        engine.addSystem(WorldRenderingSystem(world))
+        engine.addSystem(RenderingSystem(world))
     }
 
     override fun dispose() {
@@ -54,7 +54,7 @@ abstract class BaseDevScreen : ScreenAdapter() {
     }
 
     override fun resize(width: Int, height: Int) {
-        engine.getSystem(CoreSystem::class.java).resize(width, height)
+        engine.getSystem(RenderingSystem::class.java).resize(width, height)
         guiCam.setToOrtho(true, width.toFloat(), height.toFloat())
     }
 

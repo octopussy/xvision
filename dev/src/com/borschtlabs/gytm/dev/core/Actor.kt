@@ -10,16 +10,12 @@ import kotlin.properties.Delegates
 
 abstract class Actor(val world: World) : Entity() {
 
-    var location: Vector3 = Vector3()
-        get() = rootComponent.location
-        set(value) {
-            rootComponent.location.set(field)
-        }
+    val location: Vector3 get() = rootComponent.location
 
     var rootComponent: ActorComponent by Delegates.notNull()
 
     inline fun <reified T : ActorComponent> createComponent(initializer: T.() -> Unit): T {
-        val constr= T::class.java.getConstructor(Actor::class.java)
+        val constr = T::class.java.getConstructor(Actor::class.java)
         val comp = constr.newInstance(this)
         add(comp)
         initializer(comp)
@@ -29,6 +25,7 @@ abstract class Actor(val world: World) : Entity() {
     open fun tick(dt: Float) {
         components.forEach {
             if (it != null && it is ActorComponent) {
+                it.updateTransformations(rootComponent)
                 it.update(dt)
             }
         }

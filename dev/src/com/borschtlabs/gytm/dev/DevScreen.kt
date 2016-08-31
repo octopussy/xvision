@@ -3,6 +3,7 @@ package com.borschtlabs.gytm.dev
 import com.badlogic.gdx.Gdx
 import com.borschtlabs.gytm.dev.core.CameraActor
 import com.borschtlabs.gytm.dev.game.BaseDevScreen
+import com.borschtlabs.gytm.dev.game.PlayerActor
 import kotlin.properties.Delegates
 
 /**
@@ -11,11 +12,12 @@ import kotlin.properties.Delegates
 
 class DevScreen : BaseDevScreen() {
 
+    private var player: PlayerActor by Delegates.notNull()
+
     private var cameraActor: CameraActor by Delegates.notNull()
 
     private val onTap: (x: Float, y: Float) -> Unit = {
-        x, y ->
-        Gdx.app.log("123", "$x $y")
+        x, y -> player.moveToCell(x.toInt(), y.toInt())
     }
 
     override fun show() {
@@ -23,8 +25,11 @@ class DevScreen : BaseDevScreen() {
 
         world.loadLevel("test")
 
+        player = world.spawnActor<PlayerActor> {
+            location.set(0f, 0f, 0f)
+        }
+
         cameraActor = world.spawnActor<CameraActor> {
-            //location.set(20f, 20f, 0f)
             setAsActiveCamera()
         }
 
@@ -37,3 +42,4 @@ class DevScreen : BaseDevScreen() {
         drawDebugUI()
     }
 }
+
