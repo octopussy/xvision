@@ -13,5 +13,6 @@ abstract class ActorComponent(val owner:Actor) : Component {
 
     var rotation: Float = 0f
 
-    abstract fun update(dt: Float)
+    open fun update(dt: Float) {
+    }
 }

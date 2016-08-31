@@ -26,7 +26,7 @@ abstract class Actor(val world: World) : Entity() {
         return comp
     }
 
-    fun tick(dt: Float) {
+    open fun tick(dt: Float) {
         components.forEach {
             if (it != null && it is ActorComponent) {
                 it.update(dt)
@@ -34,7 +34,7 @@ abstract class Actor(val world: World) : Entity() {
         }
     }
 
-    fun render(dt: Float) {
+    open fun render(dt: Float) {
 
     }
 }

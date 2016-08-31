@@ -18,7 +18,7 @@ import com.borschtlabs.gytm.dev.core.systems.WorldRenderingSystem
  * @author octopussy
  */
 
-abstract class BaseScreen : ScreenAdapter() {
+abstract class BaseDevScreen : ScreenAdapter() {
     val engine: Engine = Engine()
 
     val world: World = World(engine)
@@ -29,8 +29,6 @@ abstract class BaseScreen : ScreenAdapter() {
     private lateinit var guiBatch: Batch
 
     protected lateinit var debugSR: ShapeRenderer
-
-    abstract fun onTap(px: Float, py: Float)
 
     override fun show() {
         initSystems()
@@ -43,8 +41,6 @@ abstract class BaseScreen : ScreenAdapter() {
         guiCam = OrthographicCamera()
 
         resize(Gdx.graphics.width, Gdx.graphics.height)
-
-        world.loadLevel("test")
     }
 
     private fun initSystems() {

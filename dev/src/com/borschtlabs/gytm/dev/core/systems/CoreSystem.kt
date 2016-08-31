@@ -1,15 +1,11 @@
 package com.borschtlabs.gytm.dev.core.systems
 
 import com.badlogic.ashley.core.Engine
-import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.EntitySystem
-import com.badlogic.ashley.core.Family
-import com.badlogic.ashley.utils.ImmutableArray
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.borschtlabs.gytm.dev.core.Actor
-import com.borschtlabs.gytm.dev.core.CameraComponent
 import com.borschtlabs.gytm.dev.core.World
-import kotlin.properties.Delegates
 
 /**
  * @author octopussy
@@ -20,18 +16,19 @@ class CoreSystem(val world: World) : EntitySystem(0) {
     private val VIEWPORT_WIDTH = 30
 
     var activeCamera: OrthographicCamera = DEFAULT_CAMERA
-
-    private var actors: ImmutableArray<Entity> by Delegates.notNull()
+        set(value) {
+            field = value
+            resize(Gdx.graphics.width, Gdx.graphics.height)
+        }
 
     override fun addedToEngine(engine: Engine) {
-        actors = engine.getEntitiesFor(Family.all(CameraComponent::class.java).get())
-    }
 
+    }
 
     override fun update(deltaTime: Float) {
         activeCamera.update()
 
-        actors.forEach {
+        engine.entities.forEach {
             if (it != null && it is Actor) {
                 it.tick(deltaTime)
             }
