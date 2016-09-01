@@ -15,8 +15,11 @@ class Point : Pool.Poolable {
 
     val position: Vector2 = Vector2()
 
+    var angleFromCenter: Float = 0f
+
     override fun reset() {
         position.set(0f, 0f)
+        angleFromCenter = 0f
     }
 
     override fun hashCode(): Int = this.position.hashCode()
@@ -53,9 +56,9 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     var isEnabled: Boolean = true
 
-    var maxDistance = 5.5f
+    var maxDistance = 50.0f
 
-    var showDebug = true
+    var showDebug = false
 
     val resultPoints = Array<Point>()
 
@@ -89,8 +92,6 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         val centerX = location.x
         val centerY = location.y
-
-        addPoint(centerX, centerY)
 
         val debugWalls = DebugGraphics()
         debugWalls.color = Color.MAGENTA
@@ -166,12 +167,44 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
             dir.set(it.position.x - centerX, it.position.y - centerY).setLength(FAR_DISTANCE)
             farPoint.set(centerX + dir.x, centerY + dir.y)
 
-            val distance = Vector2.len(centerX - it.position.x, centerY - it.position.y)
-
-            val intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+            var mainPointAdded = false
+            val distanceToMainPoint = Vector2.len(centerX - it.position.x, centerY - it.position.y)
+            var intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
             val nearestDistance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
-            if (!intersectionOccurred || nearestDistance + 0.0001f >= distance) {
-                addPoint(it.position.x, it.position.y)
+            if (!intersectionOccurred || nearestDistance + 0.00001f >= distanceToMainPoint) {
+                addPoint(it.position.x, it.position.y, dir.angleRad())
+                mainPointAdded = true
+            }
+
+            if (mainPointAdded) {
+                // trace left -0.0001 rad
+                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(0.00001f).setLength(FAR_DISTANCE)
+                farPoint.set(centerX + dir.x, centerY + dir.y)
+
+                intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+                var distance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
+                if (intersectionOccurred && distance + 0.0001f >= distanceToMainPoint) {
+                    addPoint(tmp.x, tmp.y, dir.angleRad())
+                }
+
+
+                // trace right +0.0001 rad
+                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(-0.0001f).setLength(FAR_DISTANCE)
+                farPoint.set(centerX + dir.x, centerY + dir.y)
+
+                intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+                distance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
+                if (intersectionOccurred && distance + 0.0001f >= distanceToMainPoint) {
+                    addPoint(tmp.x, tmp.y, dir.angleRad())
+                }
+            }
+        }
+
+        resultPoints.sort { p1, p2 ->
+            when {
+                p1.angleFromCenter < p2.angleFromCenter -> 1
+                p1.angleFromCenter > p2.angleFromCenter -> -1
+                else -> 0
             }
         }
 
@@ -203,9 +236,10 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         return c != null && c.isWall
     }
 
-    private fun addPoint(x: Float, y: Float) {
+    private fun addPoint(x: Float, y: Float, angle: Float) {
         val p = Pools.obtain(Point::class.java)
         p.position.set(x, y)
+        p.angleFromCenter = angle
         resultPoints.add(p)
     }
 }

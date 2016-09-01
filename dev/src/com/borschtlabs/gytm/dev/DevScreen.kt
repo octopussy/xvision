@@ -31,11 +31,15 @@ class DevScreen : BaseDevScreen(), InputDelegate {
     override fun show() {
         super.show()
 
-        world.loadLevel("test2")
+        world.loadLevel("test")
 
-        player = world.spawnActor<PlayerActor> {
-            location.set(0f, 0f)
-        }
+        /*player = world.spawnActor<PlayerActor> {
+            location.set(10f, 10f)
+
+            createComponent<VisibilityComponent> {
+                isEnabled = true
+            }
+        }*/
 
         cameraActor = world.spawnActor<CameraActor> {
             setAsActiveCamera()
@@ -44,6 +48,24 @@ class DevScreen : BaseDevScreen(), InputDelegate {
         dragActor = world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(2f, 2f)
+
+            createComponent<VisibilityComponent> {
+                isEnabled = true
+            }
+        }
+
+        world.spawnActor<DraggableActor> {
+            boundsRadius = 1f
+            location.set(20f, 20f)
+
+            createComponent<VisibilityComponent> {
+                isEnabled = true
+            }
+        }
+
+        world.spawnActor<DraggableActor> {
+            boundsRadius = 1f
+            location.set(35f, 30f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true

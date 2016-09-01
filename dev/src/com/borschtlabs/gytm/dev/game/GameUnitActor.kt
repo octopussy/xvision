@@ -57,6 +57,8 @@ open class GameUnitActor(world: World) : Actor(world) {
     }
 
     override fun tick(dt: Float) {
+        super.tick(dt)
+
         if (state == State.MOVING) {
             stepMovement(dt, 10.0f)
         }

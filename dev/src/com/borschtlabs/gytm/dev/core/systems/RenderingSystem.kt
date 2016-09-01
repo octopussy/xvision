@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.MapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.borschtlabs.gytm.dev.EmptyMapRenderer
@@ -160,18 +161,20 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                         }
                     }
 
-                    drawDebugVisMap(vc.resultPoints)
+                    drawDebugVisMap(vc.location, vc.resultPoints)
                 }
             }
             disableBlending()
         }
     }
 
-    private fun drawDebugVisMap(points: Array<Point>) {
-        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.GOLD) {
-
-            points.forEach {
-                circle(it.position.x, it.position.y, 0.3f, 8)
+    private fun drawDebugVisMap(cp: Vector2, points: Array<Point>) {
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, Color(Color.rgba8888(0.2f, 1f, 1f, 0.2f))) {
+            for (i in 0..points.size - 1) {
+                val p1 = points[i].position
+                val p2 = if (i < points.size - 1) points[i + 1].position else points[0].position
+                triangle(cp.x, cp.y, p1.x, p1.y, p2.x, p2.y)
+                //line(cp, points[i].position)
             }
         }
     }
