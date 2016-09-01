@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.Pools
  * @author octopussy
  */
 
-class VisMapPoint : Pool.Poolable {
+class Point : Pool.Poolable {
 
     val position: Vector2 = Vector2()
 
@@ -22,7 +22,7 @@ class VisMapPoint : Pool.Poolable {
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return  false
-        if (other is VisMapPoint) {
+        if (other is Point) {
             return this.position.equals(other.position)
         } else {
             return false
@@ -50,17 +50,17 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     var isEnabled: Boolean = true
 
-    var maxDistance = 5f
+    var maxDistance = 5.5f
 
     var showDebug = true
 
-    val points = Array<VisMapPoint>()
+    val points = Array<Point>()
 
     val debugInfo = mutableListOf<DebugGraphics>()
 
     private val visibleSegments = Array<Segment>()
 
-    private val visiblePoints = hashSetOf<VisMapPoint>()
+    private val visiblePoints = hashSetOf<Point>()
 
     override fun tick(dt: Float) {
         super.tick(dt)
@@ -91,18 +91,18 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         val level = owner.world.level
         //val cells = mutableListOf<Level.Cell>()
 
-        val swX:Int = (Math.round(location.x) - maxDistance).toInt()
-        val swY:Int = (Math.round(location.y) - maxDistance).toInt()
-        val neX:Int = (swX + maxDistance * 2).toInt()
-        val neY:Int = (swY + maxDistance * 2).toInt()
+        val swX:Float = (Math.round(location.x) - maxDistance)
+        val swY:Float = (Math.round(location.y) - maxDistance)
+        val neX:Float = (swX + maxDistance * 2)
+        val neY:Float = (swY + maxDistance * 2)
 
         addSegment(swX.toFloat(), swY.toFloat(), neX.toFloat(), swY.toFloat())
         addSegment(neX.toFloat(), swY.toFloat(), neX.toFloat(), neY.toFloat())
         addSegment(neX.toFloat(), neY.toFloat(), swX.toFloat(), neY.toFloat())
         addSegment(swX.toFloat(), neY.toFloat(), swX.toFloat(), swY.toFloat())
 
-        for (y in swY..neY - 1) {
-            for (x in swX..neX - 1) {
+        for (y in swY.toInt()..neY.toInt()) {
+            for (x in swX.toInt()..neX.toInt()) {
                 val cell = level.getCell(x, y)
 
                 if (cell != null && cell.isWall) {
@@ -143,11 +143,11 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         visibleSegments.add(seg)
 
-        var p = Pools.obtain(VisMapPoint::class.java)
+        var p = Pools.obtain(Point::class.java)
         p.position.set(x1, y1)
         visiblePoints.add(p)
 
-        p = Pools.obtain(VisMapPoint::class.java)
+        p = Pools.obtain(Point::class.java)
         p.position.set(x2, y2)
         visiblePoints.add(p)
     }
@@ -158,7 +158,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
     }
 
     private fun addPoint(x: Float, y: Float) {
-        val p = Pools.obtain(VisMapPoint::class.java)
+        val p = Pools.obtain(Point::class.java)
         p.position.set(x, y)
         points.add(p)
     }

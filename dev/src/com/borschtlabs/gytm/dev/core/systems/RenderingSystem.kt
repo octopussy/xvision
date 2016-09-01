@@ -166,7 +166,7 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
         }
     }
 
-    private fun drawDebugVisMap(points: Array<VisMapPoint>) {
+    private fun drawDebugVisMap(points: Array<Point>) {
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.GOLD) {
 
             for (i in 1..points.size - 1) {
