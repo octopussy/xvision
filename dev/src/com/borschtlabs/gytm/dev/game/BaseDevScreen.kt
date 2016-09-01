@@ -46,6 +46,8 @@ abstract class BaseDevScreen : ScreenAdapter() {
     private fun initSystems() {
         engine.addSystem(CoreSystem(world))
         engine.addSystem(RenderingSystem(world))
+
+        Gdx.input.inputProcessor = engine.getSystem(CoreSystem::class.java)
     }
 
     override fun dispose() {

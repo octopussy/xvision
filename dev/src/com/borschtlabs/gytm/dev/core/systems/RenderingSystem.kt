@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.MapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.borschtlabs.gytm.dev.EmptyMapRenderer
 import com.borschtlabs.gytm.dev.core.Actor
 import com.borschtlabs.gytm.dev.core.TextureComponent
@@ -26,8 +27,11 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
     var activeCamera: OrthographicCamera = DEFAULT_CAMERA
         set(value) {
             field = value
+            viewport.camera = field
             resize(Gdx.graphics.width, Gdx.graphics.height)
         }
+
+    val viewport: ExtendViewport = ExtendViewport(30.0f, 17.0f)
 
     private var currentLevelName = ""
 
@@ -67,18 +71,20 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
         val pos = activeCamera.position.cpy()
         if (aspectRatio < 1) {
-            activeCamera.setToOrtho(false, w, w * aspectRatio)
+            viewport.minWorldWidth = w
+            viewport.minWorldHeight = w * aspectRatio
         } else {
-            activeCamera.setToOrtho(false, w / aspectRatio, w)
+            viewport.minWorldWidth = w / aspectRatio
+            viewport.minWorldHeight = w
         }
 
         activeCamera.position.set(pos)
-        activeCamera.update()
+        viewport.update(width, height)
     }
 
     private fun drawLevel() {
-        if (world.level != null && world.level != null && currentLevelName != world.levelName) {
-            val level = world.level!!
+        if (currentLevelName != world.levelName) {
+            val level = world.level
             levelRenderer = OrthogonalTiledMapRenderer(level.tiledMap, 1f / level.cellSize, mainBatch)
             currentLevelName = world.levelName
         }
@@ -89,7 +95,7 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
     private fun drawActorsWithTextures() {
 
-        val level = world.level!!
+        val level = world.level
         val pixelsToMetres: Float = 1f / level.cellSize
 
         mainBatch.begin()

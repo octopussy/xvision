@@ -1,8 +1,8 @@
 package com.borschtlabs.gytm.dev
 
-import com.badlogic.gdx.Gdx
 import com.borschtlabs.gytm.dev.core.CameraActor
 import com.borschtlabs.gytm.dev.game.BaseDevScreen
+import com.borschtlabs.gytm.dev.game.DraggableActor
 import com.borschtlabs.gytm.dev.game.PlayerActor
 import kotlin.properties.Delegates
 
@@ -15,6 +15,8 @@ class DevScreen : BaseDevScreen() {
     private var player: PlayerActor by Delegates.notNull()
 
     private var cameraActor: CameraActor by Delegates.notNull()
+
+    private var dragActor: DraggableActor by Delegates.notNull()
 
     private val onTap: (x: Float, y: Float) -> Unit = {
         x, y -> player.moveToCell(x.toInt(), y.toInt())
@@ -33,7 +35,9 @@ class DevScreen : BaseDevScreen() {
             setAsActiveCamera()
         }
 
-        Gdx.input.inputProcessor = DevInputController(cameraActor, onTap)
+        dragActor = world.spawnActor<DraggableActor> {
+            location.set(10f, 10f, 0f)
+        }
     }
 
     override fun render(delta: Float) {
