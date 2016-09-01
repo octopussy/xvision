@@ -56,9 +56,9 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     var isEnabled: Boolean = true
 
-    var maxDistance = 50.0f
+    var maxDistance = 10.0f
 
-    var showDebug = false
+    var showDebug = true
 
     val resultPoints = Array<Point>()
 
@@ -105,6 +105,12 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         val neX: Float = (swX + maxDistance * 2)
         val neY: Float = (swY + maxDistance * 2)
 
+        val tmp: Vector2 = Vector2()
+
+        /*addPointToAll(swX, swY)
+        addPointToAll(neX, swY)
+        addPointToAll(neX, neY)
+        addPointToAll(swX, neY)*/
         addSegment(swX, swY, neX, swY)
         addSegment(neX, swY, neX, neY)
         addSegment(neX, neY, swX, neY)
@@ -138,9 +144,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
             }
         }
 
-        val tmp: Vector2 = Vector2()
         val tmp2: Vector2 = Vector2()
-
         fun nearestIntersection(x1: Float, y1: Float, x2: Float, y2: Float, out: Vector2): Boolean {
             var found = false
             var nearestDist = Float.MAX_VALUE
@@ -189,7 +193,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
 
                 // trace right +0.0001 rad
-                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(-0.0001f).setLength(FAR_DISTANCE)
+                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(-0.00001f).setLength(FAR_DISTANCE)
                 farPoint.set(centerX + dir.x, centerY + dir.y)
 
                 intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
@@ -222,18 +226,19 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         visibleSegments.add(seg)
 
-        var p = Pools.obtain(Point::class.java)
-        p.position.set(x1, y1)
-        allPoints.add(p)
-
-        p = Pools.obtain(Point::class.java)
-        p.position.set(x2, y2)
-        allPoints.add(p)
+        addPointToAll(x1, y1)
+        addPointToAll(x2, y2)
     }
 
     private fun checkWall(x: Int, y: Int): Boolean {
         val c = owner.world.level.getCell(x, y)
         return c != null && c.isWall
+    }
+
+    private fun addPointToAll(x: Float, y: Float) {
+        var p = Pools.obtain(Point::class.java)
+        p.position.set(x, y)
+        allPoints.add(p)
     }
 
     private fun addPoint(x: Float, y: Float, angle: Float) {

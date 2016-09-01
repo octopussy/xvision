@@ -157,7 +157,7 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
             visibilityEntities.forEachIndexed { i, entity ->
                 val vc = entity.getComponent(VisibilityComponent::class.java)
-                if (vc.isEnabled) {
+                if (vc.isEnabled && vc.showDebug) {
 
                     vc.debugInfo.forEach { info ->
                         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, info.color) {
@@ -168,11 +168,13 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                     }
 
                     drawDebugVisMap(vc.location, vc.resultPoints, colors[i % colors.size])
+
+                    debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.CHARTREUSE) {
+                        circle(vc.location.x, vc.location.y, vc.maxDistance)
+                    }
                 }
             }
-            for (e in visibilityEntities) {
 
-            }
             disableBlending()
         }
     }
