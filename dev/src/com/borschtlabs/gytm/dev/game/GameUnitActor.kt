@@ -71,7 +71,7 @@ open class GameUnitActor(world: World) : Actor(world) {
             startTurn()
         }
 
-        location.set(pos.x, pos.y, 0f)
+        location.set(pos.x, pos.y)
     }
 
     companion object {

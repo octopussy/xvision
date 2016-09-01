@@ -3,8 +3,10 @@ package com.borschtlabs.gytm.dev.core.systems
 import com.badlogic.ashley.core.*
 import com.badlogic.ashley.utils.ImmutableArray
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.MapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
@@ -13,6 +15,7 @@ import com.borschtlabs.gytm.dev.EmptyMapRenderer
 import com.borschtlabs.gytm.dev.core.Actor
 import com.borschtlabs.gytm.dev.core.TextureComponent
 import com.borschtlabs.gytm.dev.core.World
+import com.borschtlabs.gytm.dev.draw
 import kotlin.properties.Delegates
 
 /**
@@ -39,6 +42,8 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
     private val mainBatch: SpriteBatch = SpriteBatch()
 
+    private var debugShapeRenderer: ShapeRenderer = ShapeRenderer()
+
     private var textureEntities: ImmutableArray<Entity> by Delegates.notNull()
     private var textureCompMapper: ComponentMapper<TextureComponent> by Delegates.notNull()
 
@@ -50,6 +55,8 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
         drawLevel()
 
         drawActorsWithTextures()
+
+        drawDebug()
     }
 
     override fun addedToEngine(engine: Engine) {
@@ -118,5 +125,23 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
         }
 
         mainBatch.end()
+    }
+
+    private fun drawDebug() {
+        if (true) { // debug
+
+            Gdx.gl.glLineWidth(1.5f)
+
+            debugShapeRenderer.projectionMatrix = activeCamera.combined
+            debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.RED) {
+
+                engine.entities.forEach {
+                    if (it != null && it is Actor) {
+                        circle(it.location.x, it.location.y, it.boundsRadius, 12)
+                    }
+                }
+
+            }
+        }
     }
 }

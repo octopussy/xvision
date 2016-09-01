@@ -41,9 +41,9 @@ class Array2D<T> (val xSize: Int, val ySize: Int, val array: Array<Array<T>>) {
     }
 }
 
-fun ShapeRenderer.draw(type: ShapeRenderer.ShapeType, color: Color, block: () -> Unit) {
+fun ShapeRenderer.draw(type: ShapeRenderer.ShapeType, color: Color, block: ShapeRenderer.() -> Unit) {
     begin(type)
     this.color = color
-    block.invoke()
+    block.invoke(this)
     end()
 }

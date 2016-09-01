@@ -1,7 +1,7 @@
 package com.borschtlabs.gytm.dev.core
 
 import com.badlogic.ashley.core.Entity
-import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.math.Vector2
 import kotlin.properties.Delegates
 
 /**
@@ -10,7 +10,7 @@ import kotlin.properties.Delegates
 
 abstract class Actor(val world: World) : Entity() {
 
-    val location: Vector3 get() = rootComponent.location
+    val location: Vector2 get() = rootComponent.location
 
     var boundsRadius: Float
         get() = rootComponent.boundsRadius

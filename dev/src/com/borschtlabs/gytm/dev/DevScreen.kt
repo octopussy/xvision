@@ -3,7 +3,6 @@ package com.borschtlabs.gytm.dev
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.math.Vector3
 import com.borschtlabs.gytm.dev.core.CameraActor
 import com.borschtlabs.gytm.dev.core.systems.CoreSystem
 import com.borschtlabs.gytm.dev.core.systems.InputDelegate
@@ -34,7 +33,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
         world.loadLevel("test")
 
         player = world.spawnActor<PlayerActor> {
-            location.set(0f, 0f, 0f)
+            location.set(0f, 0f)
         }
 
         cameraActor = world.spawnActor<CameraActor> {
@@ -43,7 +42,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
         dragActor = world.spawnActor<DraggableActor> {
             boundsRadius = 1f
-            location.set(2f, 2f, 0f)
+            location.set(2f, 2f)
         }
 
         val coreSys = engine.getSystem(CoreSystem::class.java)
@@ -60,7 +59,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
     private var isActorDragging: Boolean = false
 
-    private var actorStartDragLocation: Vector3 = Vector3()
+    private var actorStartDragLocation: Vector2 = Vector2()
 
     private val startDragLocation: Vector2 = Vector2()
 
@@ -70,7 +69,6 @@ class DevScreen : BaseDevScreen(), InputDelegate {
         if (hit) {
             isActorDragging = true
             startDragLocation.set(worldX, worldY)
-            Gdx.app.log("down", "$startDragLocation")
             actorStartDragLocation.set(dragActor.location)
         }
 
@@ -79,9 +77,8 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
     override fun touchDragged(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
         if (isActorDragging) {
-            Gdx.app.log("drag", "$worldX")
             dragActor.location.set(actorStartDragLocation.x + (worldX - startDragLocation.x),
-                    actorStartDragLocation.y + (worldY - startDragLocation.y), 0f)
+                    actorStartDragLocation.y + (worldY - startDragLocation.y))
         }
         return isActorDragging
     }
