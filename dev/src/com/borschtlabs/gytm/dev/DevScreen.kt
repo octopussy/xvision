@@ -31,7 +31,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
     override fun show() {
         super.show()
 
-        world.loadLevel("test")
+        world.loadLevel("test2")
 
         player = world.spawnActor<PlayerActor> {
             location.set(0f, 0f)
