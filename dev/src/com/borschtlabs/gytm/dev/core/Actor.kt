@@ -12,6 +12,12 @@ abstract class Actor(val world: World) : Entity() {
 
     val location: Vector3 get() = rootComponent.location
 
+    var boundsRadius: Float
+        get() = rootComponent.boundsRadius
+        set(value) {
+            rootComponent.boundsRadius = value
+        }
+
     var rootComponent: ActorComponent by Delegates.notNull()
 
     inline fun <reified T : ActorComponent> createComponent(initializer: T.() -> Unit): T {
@@ -34,4 +40,6 @@ abstract class Actor(val world: World) : Entity() {
     open fun render(dt: Float) {
 
     }
+
+    fun hit(worldX: Float, worldY: Float): Boolean = rootComponent.hit(worldX, worldY)
 }

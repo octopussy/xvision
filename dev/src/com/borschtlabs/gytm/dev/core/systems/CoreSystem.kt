@@ -51,7 +51,18 @@ class CoreSystem(val world: World) : EntitySystem(0), InputProcessor {
 
         //val handled = event.isHandled
         //Pools.free(event)
+        rs.activeCamera.unproject(tempCoords3.set(screenX.toFloat(), screenY.toFloat(), 0f))
+
         return inputDelegate.touchDown(screenX, screenY, tempCoords3.x, tempCoords3.y)
+    }
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        pointerScreenX[pointer] = screenX
+        pointerScreenY[pointer] = screenY
+
+        rs.activeCamera.unproject(tempCoords3.set(screenX.toFloat(), screenY.toFloat(), 0f))
+
+        return inputDelegate.touchDragged(screenX, screenY, tempCoords3.x, tempCoords3.y)
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -59,7 +70,7 @@ class CoreSystem(val world: World) : EntitySystem(0), InputProcessor {
         pointerScreenX[pointer] = screenX
         pointerScreenY[pointer] = screenY
 
-        return false
+        return inputDelegate.touchUp(screenX, screenY, tempCoords3.x, tempCoords3.y)
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
@@ -78,10 +89,6 @@ class CoreSystem(val world: World) : EntitySystem(0), InputProcessor {
         return false
     }
 
-    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        return false
-    }
-
     override fun keyDown(keycode: Int): Boolean {
         return false
     }
@@ -89,7 +96,14 @@ class CoreSystem(val world: World) : EntitySystem(0), InputProcessor {
     companion object {
         private val NULL_INPUT_DELEGATE: InputDelegate = object : InputDelegate {
             override fun touchDown(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
-                Gdx.app.log("Null input", "scrX:$screenX  scrY:$screenY  wrldX:$worldX  wrldY:$worldY")
+                return false
+            }
+
+            override fun touchDragged(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
+                return false
+            }
+
+            override fun touchUp(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
                 return false
             }
 
