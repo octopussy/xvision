@@ -32,7 +32,7 @@ abstract class Actor(val world: World) : Entity() {
         components.forEach {
             if (it != null && it is ActorComponent) {
                 it.updateTransformations(rootComponent)
-                it.update(dt)
+                it.tick(dt)
             }
         }
     }

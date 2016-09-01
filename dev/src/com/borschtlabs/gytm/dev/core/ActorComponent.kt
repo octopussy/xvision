@@ -10,8 +10,6 @@ import com.badlogic.gdx.math.Vector2
 
 abstract class ActorComponent(val owner: Actor) : Component {
 
-    private val children: MutableList<ActorComponent> = mutableListOf()
-
     val location: Vector2 = Vector2()
 
     var scale: Vector2 = Vector2(1.0f, 1.0f)
@@ -27,7 +25,7 @@ abstract class ActorComponent(val owner: Actor) : Component {
         bounds.setPosition(parent.location.x, parent.location.y)
     }
 
-    open fun update(dt: Float) {
+    open fun tick(dt: Float) {
     }
 
     fun hit(worldX: Float, worldY: Float) = bounds.contains(worldX, worldY)

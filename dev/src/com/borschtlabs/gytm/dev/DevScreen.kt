@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.math.Vector2
 import com.borschtlabs.gytm.dev.core.CameraActor
+import com.borschtlabs.gytm.dev.core.VisibilityComponent
 import com.borschtlabs.gytm.dev.core.systems.CoreSystem
 import com.borschtlabs.gytm.dev.core.systems.InputDelegate
 import com.borschtlabs.gytm.dev.game.BaseDevScreen
@@ -43,6 +44,10 @@ class DevScreen : BaseDevScreen(), InputDelegate {
         dragActor = world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(2f, 2f)
+
+            createComponent<VisibilityComponent> {
+                isEnabled = true
+            }
         }
 
         val coreSys = engine.getSystem(CoreSystem::class.java)

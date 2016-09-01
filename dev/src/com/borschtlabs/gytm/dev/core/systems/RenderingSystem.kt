@@ -4,17 +4,17 @@ import com.badlogic.ashley.core.*
 import com.badlogic.ashley.utils.ImmutableArray
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.MapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.borschtlabs.gytm.dev.EmptyMapRenderer
-import com.borschtlabs.gytm.dev.core.Actor
-import com.borschtlabs.gytm.dev.core.TextureComponent
-import com.borschtlabs.gytm.dev.core.World
+import com.borschtlabs.gytm.dev.core.*
 import com.borschtlabs.gytm.dev.draw
 import kotlin.properties.Delegates
 
@@ -44,6 +44,8 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
     private var debugShapeRenderer: ShapeRenderer = ShapeRenderer()
 
+    private var visibilityEntities: ImmutableArray<Entity> by Delegates.notNull()
+
     private var textureEntities: ImmutableArray<Entity> by Delegates.notNull()
     private var textureCompMapper: ComponentMapper<TextureComponent> by Delegates.notNull()
 
@@ -60,6 +62,7 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
     }
 
     override fun addedToEngine(engine: Engine) {
+        visibilityEntities = engine.getEntitiesFor(Family.all(VisibilityComponent::class.java).get())
         textureEntities = engine.getEntitiesFor(Family.all(TextureComponent::class.java).get())
         textureCompMapper = ComponentMapper.getFor(TextureComponent::class.java)
     }
@@ -133,6 +136,7 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
             Gdx.gl.glLineWidth(1.5f)
 
             debugShapeRenderer.projectionMatrix = activeCamera.combined
+
             debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.RED) {
 
                 engine.entities.forEach {
@@ -142,6 +146,41 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                 }
 
             }
+
+            enableBlending()
+            for (e in visibilityEntities) {
+                val vc = e.getComponent(VisibilityComponent::class.java)
+                if (vc.isEnabled) {
+                    //drawDebugVisMap(vc.points)
+
+                    vc.debugInfo.forEach { info ->
+                        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, info.color) {
+                            info.lines.forEach {
+                                line(it.first, it.second)
+                            }
+                        }
+                    }
+                }
+            }
+            disableBlending()
         }
+    }
+
+    private fun drawDebugVisMap(points: Array<VisMapPoint>) {
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.GOLD) {
+
+            for (i in 1..points.size - 1) {
+                line(points[i - 1].position, points[i].position)
+            }
+        }
+    }
+
+    private fun enableBlending() {
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+    }
+
+    private fun disableBlending() {
+        Gdx.gl.glDisable(GL20.GL_BLEND)
     }
 }
