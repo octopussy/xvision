@@ -3,6 +3,7 @@ package com.borschtlabs.gytm.dev
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.math.Vector2
+import com.borschtlabs.gytm.dev.core.Actor
 import com.borschtlabs.gytm.dev.core.CameraActor
 import com.borschtlabs.gytm.dev.core.VisibilityComponent
 import com.borschtlabs.gytm.dev.core.systems.CoreSystem
@@ -22,7 +23,12 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
     private var cameraActor: CameraActor by Delegates.notNull()
 
-    private var dragActor: DraggableActor by Delegates.notNull()
+    private var dragActors = mutableSetOf<Actor>()
+    private var draggingActor: Actor? = null
+
+    private var actorStartDragLocation: Vector2 = Vector2()
+
+    private val startDragLocation: Vector2 = Vector2()
 
     private val onTap: (x: Float, y: Float) -> Unit = {
         x, y -> player.moveToCell(x.toInt(), y.toInt())
@@ -45,32 +51,32 @@ class DevScreen : BaseDevScreen(), InputDelegate {
             setAsActiveCamera()
         }
 
-        dragActor = world.spawnActor<DraggableActor> {
+        dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(2f, 2f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
-        }
+        })
 
-        world.spawnActor<DraggableActor> {
+        dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(20f, 20f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
-        }
+        })
 
-        world.spawnActor<DraggableActor> {
+        dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(35f, 30f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
-        }
+        })
 
         val coreSys = engine.getSystem(CoreSystem::class.java)
         coreSys.inputDelegate = this
@@ -84,35 +90,30 @@ class DevScreen : BaseDevScreen(), InputDelegate {
         drawDebugUI()
     }
 
-    private var isActorDragging: Boolean = false
-
-    private var actorStartDragLocation: Vector2 = Vector2()
-
-    private val startDragLocation: Vector2 = Vector2()
-
     override fun touchDown(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
-        val hit = dragActor.hit(worldX, worldY)
-
-        if (hit) {
-            isActorDragging = true
-            startDragLocation.set(worldX, worldY)
-            actorStartDragLocation.set(dragActor.location)
+        dragActors.forEach {
+            if (it.hit(worldX, worldY)){
+                draggingActor = it
+                startDragLocation.set(worldX, worldY)
+                actorStartDragLocation.set(it.location)
+                return@forEach
+            }
         }
 
-        return hit
+        return draggingActor != null
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
-        if (isActorDragging) {
-            dragActor.location.set(actorStartDragLocation.x + (worldX - startDragLocation.x),
+        if (draggingActor != null) {
+            draggingActor!!.location.set(actorStartDragLocation.x + (worldX - startDragLocation.x),
                     actorStartDragLocation.y + (worldY - startDragLocation.y))
         }
-        return isActorDragging
+        return draggingActor != null
     }
 
     override fun touchUp(screenX: Int, screenY: Int, worldX: Float, worldY: Float): Boolean {
-        val handle = isActorDragging
-        isActorDragging = false
+        val handle = draggingActor != null
+        draggingActor = null
         return handle
     }
 }

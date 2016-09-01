@@ -148,9 +148,15 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
             }
 
+            val colors = listOf<Color>(
+                    Color(Color.rgba8888(0.2f, 1f, 1f, 0.2f)),
+                    Color(Color.rgba8888(0.2f, 0.2f, 1f, 0.2f)),
+                    Color(Color.rgba8888(1f, 0.2f, 0.2f, 0.2f)))
+
             enableBlending()
-            for (e in visibilityEntities) {
-                val vc = e.getComponent(VisibilityComponent::class.java)
+
+            visibilityEntities.forEachIndexed { i, entity ->
+                val vc = entity.getComponent(VisibilityComponent::class.java)
                 if (vc.isEnabled) {
 
                     vc.debugInfo.forEach { info ->
@@ -161,15 +167,18 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                         }
                     }
 
-                    drawDebugVisMap(vc.location, vc.resultPoints)
+                    drawDebugVisMap(vc.location, vc.resultPoints, colors[i % colors.size])
                 }
+            }
+            for (e in visibilityEntities) {
+
             }
             disableBlending()
         }
     }
 
-    private fun drawDebugVisMap(cp: Vector2, points: Array<Point>) {
-        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, Color(Color.rgba8888(0.2f, 1f, 1f, 0.2f))) {
+    private fun drawDebugVisMap(cp: Vector2, points: Array<Point>, color: Color) {
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) {
             for (i in 0..points.size - 1) {
                 val p1 = points[i].position
                 val p2 = if (i < points.size - 1) points[i + 1].position else points[0].position
