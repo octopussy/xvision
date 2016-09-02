@@ -38,7 +38,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     private val FAR_DISTANCE = 1000f
 
-    private val DISTANCE_EPSILON = 0.001f
+    private val DISTANCE_EPSILON = 0.0001f
 
     private val ANGLE_DEVIATION = 0.000001f
 
