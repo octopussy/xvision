@@ -48,6 +48,11 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         val lines = mutableListOf<Pair<Vector2, Vector2>>()
     }
 
+    private var swX: Float = 0f
+    private var swY: Float = 0f
+    private var neX: Float = 0f
+    private var neY: Float = 0f
+
     var isEnabled: Boolean = true
 
     var maxDistance = 100.0f
@@ -72,6 +77,28 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     val walls = mutableListOf<Level.Cell>()
 
+    private fun nearestIntersection(centerX: Float, centerY: Float, toX: Float, toY: Float, out: Vector2) {
+        if (owner.world.level.nearestIntersection(centerX, centerY, toX, toY, out)) {
+            return
+        }
+
+        if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, swY, swX, neY, out)) {
+            return
+        }
+
+        if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, neY, neX, neY, out)) {
+            return
+        }
+
+        if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, neY, neX, swY, out)) {
+            return
+        }
+
+        if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, swY, swX, swY, out)) {
+            return
+        }
+    }
+
     private fun calculateVisibility() {
         allPoints.forEach { Pools.free(it) }
         allPoints.clear()
@@ -86,10 +113,10 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         val level = owner.world.level
 
-        val swX: Float = (Math.round(centerX) - maxDistance)
-        val swY: Float = (Math.round(centerY) - maxDistance)
-        val neX: Float = (swX + maxDistance * 2)
-        val neY: Float = (swY + maxDistance * 2)
+        swX = (Math.round(centerX) - maxDistance)
+        swY = (Math.round(centerY) - maxDistance)
+        neX = (swX + maxDistance * 2)
+        neY = (swY + maxDistance * 2)
 
         val tmp: Vector2 = Vector2()
 
@@ -129,28 +156,6 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         val dir = Vector2()
         val farPoint: Vector2 = Vector2()
-
-        fun nearestIntersection(centerX: Float, centerY: Float, toX: Float, toY: Float, out: Vector2) {
-            if (level.nearestIntersection(centerX, centerY, toX, toY, out)) {
-                return
-            }
-
-            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, swY, swX, neY, out)) {
-                return
-            }
-
-            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, neY, neX, neY, out)) {
-                return
-            }
-
-            if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, neY, neX, swY, out)) {
-                return
-            }
-
-            if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, swY, swX, swY, out)) {
-                return
-            }
-        }
 
         allPoints.forEach {
             // trace straight
