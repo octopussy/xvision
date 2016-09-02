@@ -168,10 +168,6 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                     }
 
                     drawDebugVisMap(vc.location, vc.resultPoints, colors[i % colors.size])
-
-                    debugShapeRenderer.draw(ShapeRenderer.ShapeType.Line, Color.CHARTREUSE) {
-                        circle(vc.location.x, vc.location.y, vc.maxDistance)
-                    }
                 }
             }
 
@@ -186,6 +182,12 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
                 val p2 = points[i + 1].position
                 triangle(cp.x, cp.y, p1.x, p1.y, p2.x, p2.y)
                 //line(cp, points[i].position)
+            }
+        }
+
+        debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, Color.YELLOW) {
+            for (i in 0..points.size - 1) {
+                circle(points[i].position.x, points[i].position.y, 0.1f, 10)
             }
         }
     }

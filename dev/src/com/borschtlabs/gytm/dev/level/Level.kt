@@ -133,6 +133,24 @@ class Level private constructor(val tiledMap: TiledMap) : Disposable {
         return cells[x, y]
     }
 
+    fun getWalls(swX: Float, swY: Float, neX: Float, neY: Float, list: MutableList<Cell>) {
+        list.clear()
+        val x0 = Math.max(swX.toInt(), 0)
+        val y0 = Math.max(swY.toInt(), 0)
+        val x1 = Math.min(neX.toInt(), width - 1)
+        val y1 = Math.min(neY.toInt(), height - 1)
+
+        for (y in y0..y1) {
+            for (x in x0..x1) {
+                val c = cells[x, y]
+                if (c.isWall) {
+                    list.add(c)
+                }
+            }
+        }
+    }
+
+
     fun checkCellsIfOccupied(size: Int, x: Int, y: Int): Boolean {
         for (yy in y..y + size - 1) {
             for (xx in x..x + size - 1) {

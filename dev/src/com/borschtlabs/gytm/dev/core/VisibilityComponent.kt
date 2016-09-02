@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Pool
 import com.badlogic.gdx.utils.Pools
+import com.borschtlabs.gytm.dev.level.Level
 
 /**
  * @author octopussy
@@ -69,6 +70,8 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         calculateVisibility()
     }
 
+    val walls = mutableListOf<Level.Cell>()
+
     private fun calculateVisibility() {
         allPoints.forEach { Pools.free(it) }
         allPoints.clear()
@@ -95,34 +98,32 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         addPointToAll(neX, neY)
         addPointToAll(swX, neY)
 
-        for (y in swY.toInt()..neY.toInt()) {
-            for (x in swX.toInt()..neX.toInt()) {
-                val cell = level.getCell(x, y)
+        level.getWalls(swX, swY, neX, neY, walls)
 
-                if (cell != null && cell.isWall) {
-                    val xx = cell.x.toFloat()
-                    val yy = cell.y.toFloat()
+        walls.forEach {
+            val x = it.x
+            val y = it.y
+            val fx = it.x.toFloat()
+            val fy = it.y.toFloat()
 
-                    if (centerY < yy && !checkWall(x, y - 1)) {
-                        addPointToAll(xx, yy)
-                        addPointToAll(xx + 1f, yy)
-                    }
+            if (centerY < fy && !checkWall(x, y - 1)) {
+                addPointToAll(fx, fy)
+                addPointToAll(fx + 1f, fy)
+            }
 
-                    if (centerX > xx + 1f && !checkWall(x + 1, y)) {
-                        addPointToAll(xx + 1f, yy)
-                        addPointToAll(xx + 1f, yy + 1f)
-                    }
+            if (centerX > fx + 1f && !checkWall(x + 1, y)) {
+                addPointToAll(fx + 1f, fy)
+                addPointToAll(fx + 1f, fy + 1f)
+            }
 
-                    if (centerY > yy + 1f && !checkWall(x, y + 1)) {
-                        addPointToAll(xx + 1f, yy + 1f)
-                        addPointToAll(xx, yy + 1f)
-                    }
+            if (centerY > fy + 1f && !checkWall(x, y + 1)) {
+                addPointToAll(fx + 1f, fy + 1f)
+                addPointToAll(fx, fy + 1f)
+            }
 
-                    if (centerX < xx && !checkWall(x - 1, y)) {
-                        addPointToAll(xx, yy + 1f)
-                        addPointToAll(xx, yy)
-                    }
-                }
+            if (centerX < fx && !checkWall(x - 1, y)) {
+                addPointToAll(fx, fy + 1f)
+                addPointToAll(fx, fy)
             }
         }
 
@@ -134,7 +135,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
                 return
             }
 
-            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, swY, swX, neY, out)){
+            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, swY, swX, neY, out)) {
                 return
             }
 

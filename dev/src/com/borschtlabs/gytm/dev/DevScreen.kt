@@ -60,7 +60,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
             }
         })
 
-        dragActors.add(world.spawnActor<DraggableActor> {
+        /*dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(20f, 20f)
 
@@ -76,7 +76,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
-        })
+        })*/
 
         val coreSys = engine.getSystem(CoreSystem::class.java)
         coreSys.inputDelegate = this
