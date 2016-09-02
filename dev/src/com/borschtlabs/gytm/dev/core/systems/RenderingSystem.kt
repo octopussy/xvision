@@ -181,9 +181,9 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
     private fun drawDebugVisMap(cp: Vector2, points: Array<Point>, color: Color) {
         debugShapeRenderer.draw(ShapeRenderer.ShapeType.Filled, color) {
-            for (i in 0..points.size - 1) {
+            for (i in 0..points.size - 2) {
                 val p1 = points[i].position
-                val p2 = if (i < points.size - 1) points[i + 1].position else points[0].position
+                val p2 = points[i + 1].position
                 triangle(cp.x, cp.y, p1.x, p1.y, p2.x, p2.y)
                 //line(cp, points[i].position)
             }

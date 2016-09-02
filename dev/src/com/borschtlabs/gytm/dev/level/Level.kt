@@ -4,6 +4,9 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.GridPoint2
+import com.badlogic.gdx.math.Intersector
+import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Disposable
 import com.borschtlabs.gytm.dev.Array2D
 
@@ -13,7 +16,16 @@ import com.borschtlabs.gytm.dev.Array2D
 
 class Level private constructor(val tiledMap: TiledMap) : Disposable {
 
-    class Cell(x: Int, y: Int) : GridPoint2(x, y) {
+    class Cell(x: Int, y: Int) : GridPoint2(x, y), LevelQuadtree.Object {
+
+        private var _bounds: Rectangle
+
+        init {
+            _bounds = Rectangle(x.toFloat(), y.toFloat(), 1f, 1f)
+        }
+
+        override val bounds: Rectangle get() = _bounds
+
         var isWall: Boolean = false
     }
 
@@ -27,7 +39,7 @@ class Level private constructor(val tiledMap: TiledMap) : Disposable {
         width = tiledMap.properties.get("width") as Int
         height = tiledMap.properties.get("height") as Int
         val tileWidth = tiledMap.properties.get("tilewidth") as Int
-        val tileHeight = tiledMap.properties.get("tileheight")  as Int
+        val tileHeight = tiledMap.properties.get("tileheight") as Int
 
         if (width <= 0 || height <= 0) {
             val msg = "Level measures are negative! (w=$width, h=$height)"
@@ -63,12 +75,52 @@ class Level private constructor(val tiledMap: TiledMap) : Disposable {
         walls?.apply {
             for (y in 0..height - 1) {
                 for (x in 0..width - 1) {
-                    val c = getCell(x, y)
-
-                    cells[x, y].isWall = c != null
+                    if (getCell(x, y) != null) {
+                        val cell = cells[x, y]
+                        cell.isWall = true
+                    }
                 }
             }
         }
+    }
+
+    fun nearestIntersection(centerX: Float, centerY: Float, toX: Float, toY: Float, out: Vector2): Boolean {
+
+        var nearestWall: Cell? = null
+
+        GridRaytracer.trace(centerX.toDouble(), centerY.toDouble(), toX.toDouble(), toY.toDouble()) {
+            x, y ->
+            val cell = getCell(x, y)
+            return@trace if (cell != null && cell.isWall) {
+                nearestWall = cell
+                true
+            } else {
+                false
+            }
+        }
+
+        if (nearestWall == null) return false
+
+        val xx = nearestWall!!.x.toFloat()
+        val yy = nearestWall!!.y.toFloat()
+
+        if (centerY < yy && Intersector.intersectSegments(centerX, centerY, toX, toY, xx, yy, xx + 1f, yy, out)) {
+            return true
+        }
+
+        if (centerX > xx + 1f && Intersector.intersectSegments(centerX, centerY, toX, toY, xx + 1f, yy, xx + 1f, yy + 1f, out)) {
+            return true
+        }
+
+        if (centerY > yy + 1f && Intersector.intersectSegments(centerX, centerY, toX, toY, xx, yy + 1f, xx + 1f, yy + 1f, out)) {
+            return true
+        }
+
+        if (centerX < xx && Intersector.intersectSegments(centerX, centerY, toX, toY, xx, yy, xx, yy + 1f, out)) {
+            return true
+        }
+
+        return false
     }
 
     override fun dispose() {

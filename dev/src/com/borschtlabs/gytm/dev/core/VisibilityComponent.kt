@@ -34,20 +34,13 @@ class Point : Pool.Poolable {
     }
 }
 
-class Segment : Pool.Poolable {
-    var x1: Float = 0f
-    var y1: Float = 0f
-    var x2: Float = 0f
-    var y2: Float = 0f
-
-    override fun reset() {
-        x1 = 0f; y1 = 0f; x2 = 0f; y2 = 0f
-    }
-}
-
 class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
-    private val FAR_DISTANCE: Float = 1000f
+    private val FAR_DISTANCE = 1000f
+
+    private val DISTANCE_EPSILON = 0.001f
+
+    private val ANGLE_DEVIATION = 0.000001f
 
     class DebugGraphics {
         var color: Color = Color.BLUE
@@ -56,15 +49,13 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     var isEnabled: Boolean = true
 
-    var maxDistance = 10.0f
+    var maxDistance = 100.0f
 
     var showDebug = true
 
     val resultPoints = Array<Point>()
 
     val debugInfo = mutableListOf<DebugGraphics>()
-
-    private val visibleSegments = Array<Segment>()
 
     private val allPoints = hashSetOf<Point>()
 
@@ -82,9 +73,6 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         allPoints.forEach { Pools.free(it) }
         allPoints.clear()
 
-        Pools.freeAll(visibleSegments)
-        visibleSegments.clear()
-
         Pools.freeAll(resultPoints)
         resultPoints.clear()
 
@@ -93,12 +81,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
         val centerX = location.x
         val centerY = location.y
 
-        val debugWalls = DebugGraphics()
-        debugWalls.color = Color.MAGENTA
-        debugInfo.add(debugWalls)
-
         val level = owner.world.level
-        //val cells = mutableListOf<Level.Cell>()
 
         val swX: Float = (Math.round(centerX) - maxDistance)
         val swY: Float = (Math.round(centerY) - maxDistance)
@@ -107,64 +90,66 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
         val tmp: Vector2 = Vector2()
 
-        /*addPointToAll(swX, swY)
+        addPointToAll(swX, swY)
         addPointToAll(neX, swY)
         addPointToAll(neX, neY)
-        addPointToAll(swX, neY)*/
-        addSegment(swX, swY, neX, swY)
-        addSegment(neX, swY, neX, neY)
-        addSegment(neX, neY, swX, neY)
-        addSegment(swX, neY, swX, swY)
+        addPointToAll(swX, neY)
 
         for (y in swY.toInt()..neY.toInt()) {
             for (x in swX.toInt()..neX.toInt()) {
                 val cell = level.getCell(x, y)
 
                 if (cell != null && cell.isWall) {
-                    //cells.add(cell)
                     val xx = cell.x.toFloat()
                     val yy = cell.y.toFloat()
 
                     if (centerY < yy && !checkWall(x, y - 1)) {
-                        addSegment(xx, yy, xx + 1f, yy)
+                        addPointToAll(xx, yy)
+                        addPointToAll(xx + 1f, yy)
                     }
 
                     if (centerX > xx + 1f && !checkWall(x + 1, y)) {
-                        addSegment(xx + 1f, yy, xx + 1f, yy + 1f)
+                        addPointToAll(xx + 1f, yy)
+                        addPointToAll(xx + 1f, yy + 1f)
                     }
 
                     if (centerY > yy + 1f && !checkWall(x, y + 1)) {
-                        addSegment(xx + 1f, yy + 1f, xx, yy + 1f)
+                        addPointToAll(xx + 1f, yy + 1f)
+                        addPointToAll(xx, yy + 1f)
                     }
 
                     if (centerX < xx && !checkWall(x - 1, y)) {
-                        addSegment(xx, yy + 1f, xx, yy)
+                        addPointToAll(xx, yy + 1f)
+                        addPointToAll(xx, yy)
                     }
                 }
             }
-        }
-
-        val tmp2: Vector2 = Vector2()
-        fun nearestIntersection(x1: Float, y1: Float, x2: Float, y2: Float, out: Vector2): Boolean {
-            var found = false
-            var nearestDist = Float.MAX_VALUE
-
-            visibleSegments.forEach {
-                if (Intersector.intersectSegments(x1, y1, x2, y2, it.x1, it.y1, it.x2, it.y2, tmp2)) {
-                    val dist = Vector2.len(tmp2.x - x1, tmp2.y - y1)
-                    if (dist < nearestDist) {
-                        nearestDist = dist
-                        out.set(tmp2.x, tmp2.y)
-                        found = true
-                    }
-                }
-            }
-
-            return found
         }
 
         val dir = Vector2()
         val farPoint: Vector2 = Vector2()
+
+        fun nearestIntersection(centerX: Float, centerY: Float, toX: Float, toY: Float, out: Vector2) {
+            if (level.nearestIntersection(centerX, centerY, toX, toY, out)) {
+                return
+            }
+
+            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, swY, swX, neY, out)){
+                return
+            }
+
+            if (Intersector.intersectSegments(centerX, centerY, toX, toY, swX, neY, neX, neY, out)) {
+                return
+            }
+
+            if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, neY, neX, swY, out)) {
+                return
+            }
+
+            if (Intersector.intersectSegments(centerX, centerY, toX, toY, neX, swY, swX, swY, out)) {
+                return
+            }
+        }
 
         allPoints.forEach {
             // trace straight
@@ -173,35 +158,38 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
             var mainPointAdded = false
             val distanceToMainPoint = Vector2.len(centerX - it.position.x, centerY - it.position.y)
-            var intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+            nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
             val nearestDistance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
-            if (!intersectionOccurred || nearestDistance + 0.00001f >= distanceToMainPoint) {
+            if (nearestDistance + DISTANCE_EPSILON >= distanceToMainPoint) {
                 addPoint(it.position.x, it.position.y, dir.angleRad())
                 mainPointAdded = true
             }
 
+
             if (mainPointAdded) {
                 // trace left -0.0001 rad
-                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(0.00001f).setLength(FAR_DISTANCE)
+
+                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(ANGLE_DEVIATION).setLength(FAR_DISTANCE)
                 farPoint.set(centerX + dir.x, centerY + dir.y)
 
-                intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+                nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
                 var distance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
-                if (intersectionOccurred && distance + 0.0001f >= distanceToMainPoint) {
+                if (distance + DISTANCE_EPSILON >= distanceToMainPoint) {
                     addPoint(tmp.x, tmp.y, dir.angleRad())
                 }
 
 
                 // trace right +0.0001 rad
-                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(-0.00001f).setLength(FAR_DISTANCE)
+                dir.set(it.position.x - centerX, it.position.y - centerY).rotateRad(-ANGLE_DEVIATION).setLength(FAR_DISTANCE)
                 farPoint.set(centerX + dir.x, centerY + dir.y)
 
-                intersectionOccurred = nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
+                nearestIntersection(centerX, centerY, farPoint.x, farPoint.y, tmp)
                 distance = Vector2.len(tmp.x - centerX, tmp.y - centerY)
-                if (intersectionOccurred && distance + 0.0001f >= distanceToMainPoint) {
+                if (distance + DISTANCE_EPSILON >= distanceToMainPoint) {
                     addPoint(tmp.x, tmp.y, dir.angleRad())
                 }
             }
+
         }
 
         resultPoints.sort { p1, p2 ->
@@ -212,33 +200,18 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
             }
         }
 
-        if (showDebug) {
-            visibleSegments.forEach { debugWalls.lines.add(Pair(Vector2(it.x1, it.y1), Vector2(it.x2, it.y2))) }
-        }
+        addPoint(resultPoints[0].position.x, resultPoints[0].position.y, resultPoints[0].angleFromCenter)
     }
 
-    private fun addSegment(x1: Float, y1: Float, x2: Float, y2: Float) {
-        val seg = Pools.obtain(Segment::class.java)
-        seg.x1 = x1
-        seg.y1 = y1
-        seg.x2 = x2
-        seg.y2 = y2
-
-        visibleSegments.add(seg)
-
-        addPointToAll(x1, y1)
-        addPointToAll(x2, y2)
+    private fun addPointToAll(x: Float, y: Float) {
+        val p = Pools.obtain(Point::class.java)
+        p.position.set(x, y)
+        allPoints.add(p)
     }
 
     private fun checkWall(x: Int, y: Int): Boolean {
         val c = owner.world.level.getCell(x, y)
         return c != null && c.isWall
-    }
-
-    private fun addPointToAll(x: Float, y: Float) {
-        var p = Pools.obtain(Point::class.java)
-        p.position.set(x, y)
-        allPoints.add(p)
     }
 
     private fun addPoint(x: Float, y: Float, angle: Float) {
