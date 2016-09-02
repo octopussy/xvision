@@ -37,7 +37,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
     override fun show() {
         super.show()
 
-        world.loadLevel("test")
+        world.loadLevel("test2")
 
         /*player = world.spawnActor<PlayerActor> {
             location.set(10f, 10f)
@@ -53,7 +53,7 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
         dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
-            location.set(2f, 2f)
+            location.set(0f, 0f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
@@ -62,21 +62,21 @@ class DevScreen : BaseDevScreen(), InputDelegate {
 
         dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
-            location.set(20f, 20f)
+            location.set(3f, 0f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
         })
 
-        dragActors.add(world.spawnActor<DraggableActor> {
+       /* dragActors.add(world.spawnActor<DraggableActor> {
             boundsRadius = 1f
             location.set(35f, 30f)
 
             createComponent<VisibilityComponent> {
                 isEnabled = true
             }
-        })
+        })*/
 
         val coreSys = engine.getSystem(CoreSystem::class.java)
         coreSys.inputDelegate = this

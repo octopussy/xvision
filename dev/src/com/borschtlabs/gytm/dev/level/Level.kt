@@ -5,7 +5,6 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.GridPoint2
 import com.badlogic.gdx.math.Intersector
-import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Disposable
 import com.borschtlabs.gytm.dev.Array2D
@@ -16,17 +15,18 @@ import com.borschtlabs.gytm.dev.Array2D
 
 class Level private constructor(val tiledMap: TiledMap) : Disposable {
 
-    class Cell(x: Int, y: Int) : GridPoint2(x, y), LevelQuadtree.Object {
+    class Point {
+        val loc: Vector2 = Vector2()
+    }
 
-        private var _bounds: Rectangle
+    class Edge {
+        var p0: Point? = null
+        var p1: Point? = null
+    }
 
-        init {
-            _bounds = Rectangle(x.toFloat(), y.toFloat(), 1f, 1f)
-        }
-
-        override val bounds: Rectangle get() = _bounds
-
+    class Cell(x: Int, y: Int) : GridPoint2(x, y)  {
         var isWall: Boolean = false
+        val edgesCCW: Array<Edge> = arrayOf()
     }
 
     val width: Int

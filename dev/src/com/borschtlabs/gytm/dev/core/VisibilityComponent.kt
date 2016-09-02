@@ -55,7 +55,7 @@ class VisibilityComponent(owner: Actor) : ActorComponent(owner) {
 
     var isEnabled: Boolean = true
 
-    var maxDistance = 100.0f
+    var maxDistance = 50.0f
 
     var showDebug = true
 

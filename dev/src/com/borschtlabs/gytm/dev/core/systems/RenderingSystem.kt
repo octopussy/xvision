@@ -43,6 +43,8 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
     private val mainBatch: SpriteBatch = SpriteBatch()
 
+    private val visMapRenderer: VisMapRenderer = VisMapRenderer()
+
     private var debugShapeRenderer: ShapeRenderer = ShapeRenderer()
 
     private var visibilityEntities: ImmutableArray<Entity> by Delegates.notNull()
@@ -57,9 +59,12 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
         drawLevel()
 
+
+        drawVisMaps()
+
         drawActorsWithTextures()
 
-        drawDebug()
+        //   drawDebug()
     }
 
     override fun addedToEngine(engine: Engine) {
@@ -91,6 +96,8 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
         activeCamera.position.set(pos)
         viewport.update(width, height)
+
+        visMapRenderer.resizeFBO(width, height)
     }
 
     private fun drawLevel() {
@@ -129,6 +136,25 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
         }
 
         mainBatch.end()
+    }
+
+    private fun drawVisMaps() {
+        if (visibilityEntities.size() == 0) {
+            return
+        }
+
+        val centers = mutableListOf<Vector2>()
+        val entries = mutableListOf<Array<Point>>()
+        visMapRenderer.setCombinedMatrix(activeCamera)
+        visibilityEntities.forEachIndexed { i, entity ->
+            val vc = entity.getComponent(VisibilityComponent::class.java)
+            if (vc.isEnabled) {
+                centers.add(vc.location)
+                entries.add(vc.resultPoints)
+            }
+        }
+
+        visMapRenderer.render(centers, entries)
     }
 
     private fun drawDebug() {
