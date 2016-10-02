@@ -59,10 +59,9 @@ class RenderingSystem(val world: World) : EntitySystem(1) {
 
         drawLevel()
 
+        drawActorsWithTextures()
 
         drawVisMaps()
-
-        drawActorsWithTextures()
 
         //   drawDebug()
     }
